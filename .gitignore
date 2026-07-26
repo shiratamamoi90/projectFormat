@@ -1,0 +1,30 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.log
+.DS_Store
+
+# ---------------------------------------------------------------------------
+# プロジェクトフォーマット(テンプレート)の同梱物は git に上げない。
+# コピー先で追跡するのは自分が書いた成果物 — src/ tests/ と、仕様の正本になる
+# specs/・実作業の changes/NNNN-*/ と、システム紹介の README.md だけ。この一覧が
+# その正本(TEMPLATE.md や CLAUDE.md 側に書き写さない)。
+
+# エージェントへのルール・実行・強制(方針 / skill / hooks)
+/CLAUDE.md
+/.claude/
+/scripts/hooks.sh
+/scripts/validate.sh
+# ↑ スクリプトは名前で除外する。自分で足した scripts/ 配下は追跡される
+
+# テンプレートの雛形・記入例
+/TEMPLATE.md
+# ↑ フォーマット自体の説明(使い方・ディレクトリ構造・リポジトリ状態の正本)。
+#   README.md は「作ったシステムが何か・どう使うか」を書く紹介用で、こちらは追跡する
+/decisions/
+/baselines/
+/experiments/
+# ↑ 個人前提でローカルのみ(ADR・実験 result はリポジトリ内に残るが追跡しない)。
+#   チームで共有するものは該当行を消す(TEMPLATE.md「規模に応じた拡張」)
+changes/*-example-*/
