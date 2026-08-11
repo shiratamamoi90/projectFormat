@@ -17,7 +17,7 @@ SRC_DIRS=(src)
 TEST_DIRS=(tests)
 # 決定済みの正本と、議論の記録。要件シナリオは DOC_DIRS にだけ書く
 # (decisions 側に重複させない — @.claude/rules/doc-rules.md「確定の流れ」)。
-DOC_DIRS=(requirements)
+DOC_DIRS=(docs)
 DECISION_DIR="decisions"
 SCENARIO_ID='S[0-9]{4}_[0-9]{2}'
 EXAMPLE_MARK='-example-'   # 記入例(TEMPLATE.md「このリポジトリの現在の状態」)。実作業ではない
@@ -40,6 +40,24 @@ nonempty() { printf '%s\n' "${1:-}" | grep -v '^$' || true; }
 # python 側の出力から種類タグ($1 = ERR / ID / WORD)の行だけを取り出す。タグの剥がし方を
 # 呼び出しごとに書くと、出力形式を変えたとき直し漏れた側が黙って空になる。
 pick() { printf '%s\n' "${2:-}" | awk -F'\t' -v tag="$1" '$1 == tag { sub(/^[^\t]*\t/, ""); print }'; }
+
+# ---------------------------------------------------------------------------
+# 上の設定が指すパスが実在するかを最初に見る。**存在しないパスを黙って素通りさせない。**
+# ディレクトリを改名して設定を直し忘れると、検査対象が0件のまま全項目 OK になり、
+# 「検査しているつもりで何も見ていない」状態になる(実際にこれで要件↔test 照合が
+# 空振りした)。ここで落とせば、改名の直し漏れが必ず表面化する。
+section "検査対象パスの実在"
+missing_paths=""
+for path in "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" "${DOC_DIRS[@]}" "$DECISION_DIR"; do
+  [ -d "$path" ] || missing_paths="${missing_paths}${path}(ディレクトリが無い)"$'\n'
+done
+[ -f "$GLOSSARY" ] || missing_paths="${missing_paths}${GLOSSARY}(用語集が無い)"$'\n'
+missing_paths=$(nonempty "$missing_paths")
+if [ -n "$missing_paths" ]; then
+  report_ng "scripts/validate.sh 冒頭の設定が実在しないパスを指している(改名の直し漏れ)" "$missing_paths"
+else
+  report_ok
+fi
 
 # ---------------------------------------------------------------------------
 # 要件文書の解析はここ1箇所だけで行う。シナリオ見出しの書式を bash 側にも書くと

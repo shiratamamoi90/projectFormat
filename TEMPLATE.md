@@ -36,8 +36,10 @@
    `stack.md`「Stack」の言語/FW に5つまとめてある)。
    続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **git に上げる2つの文書 — `README.md`(使う人向け:導入と使い方)と `DEVELOPMENT.md`(開発する人向け:構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
-3. 記入例(`decisions/*/000*-example-*`・`docs/0001-example-*.md`・`work/0001-example-*`)を
-   参考にしたら削除(テンプレは `.claude/rules/` 側にあるので消しても失われない)。
+3. 記入例を片づける。**削除**するもの:`decisions/*/000*-example-*`・`docs/0001-example-*.md`・
+   `work/0001-example-*`(テンプレは `.claude/rules/` 側にあるので消しても失われない)。
+   **置き換える**もの:`docs/glossary.md` の用語行(自分のドメインの語へ。**表ごと消すと
+   `validate.sh` が NG を出す**ので、確実に使う語を1つ残して始める)。
 4. Claude Code を起動。`/new-topic <名前>` で最初の論点を開き、案を出して議論する。
    決まったら `/decide <論点>` で `docs/` へ統合する。
 5. `/new-work <名前>` で作業単位を切り、`/run-loop <作業名>` で Red→Green→Refactor を回す。
@@ -70,6 +72,7 @@
 │   └── skills/                     # スラッシュコマンド(実行 / Core)
 │                                   #   new-topic / decide / new-work / run-loop / validate の SKILL.md
 ├── decisions/                      # 議論と決定の記録。状態をフォルダで表す(Core)
+│                                   #   .gitkeep は空でも階層を git に残すため(消さない)
 │   ├── undecided/                  #   未決定:論点ごとに topic.md(+ 非決定的なら config/result)
 │   │   └── 0002-example-search-depth/
 │   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
