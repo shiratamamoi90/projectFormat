@@ -15,6 +15,10 @@ GLOSSARY="specs/glossary.md"
 # 1箇所直し忘れて「テストを探せないまま OK」になる(@.claude/rules/impl-rules.md「ハードコード禁止」)。
 SRC_DIRS=(src)
 TEST_DIRS=(tests)
+# 決定済みの正本と、議論の記録。仕様シナリオは SPEC_DIRS にだけ書く
+# (decisions 側に重複させない — @.claude/rules/spec-rules.md「確定の流れ」)。
+SPEC_DIRS=(specs)
+DECISION_DIR="decisions"
 SCENARIO_ID='S[0-9]{4}_[0-9]{2}'
 EXAMPLE_MARK='-example-'   # 記入例(TEMPLATE.md「このリポジトリの現在の状態」)。実作業ではない
 MAX_SHOW=10
@@ -44,7 +48,7 @@ pick() { printf '%s\n' "${2:-}" | awk -F'\t' -v tag="$1" '$1 == tag { sub(/^[^\t
 #
 # 対象ファイルは引数で渡す(パイプ + xargs にすると heredoc と stdin を取り合い、
 # python がプログラムを読めずに黙って何も検査しなくなる)。
-mapfile -t spec_docs < <(find specs changes -name '*.md' 2>/dev/null | sort)
+mapfile -t spec_docs < <(find "${SPEC_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
 spec_out=""
 if [ "${#spec_docs[@]}" -gt 0 ]; then
   spec_out=$(python3 - "${spec_docs[@]}" <<'PY'
@@ -59,18 +63,14 @@ for path in sys.argv[1:]:
     headings = [(no, m.group(1))
                 for no, line in enumerate(lines, 1)
                 if (m := HEADING.match(line))]
-    # spec.md は必ずシナリオを持つ。それ以外(用語集・確定仕様の目次など)は
-    # シナリオ見出しを持つときだけ仕様文書として検査する。
-    if not headings and not path.endswith('/spec.md'):
+    # 用語集・目次などシナリオを持たない文書は検査対象外。
+    # シナリオ見出しを持つものだけを仕様文書として扱う。
+    if not headings:
         continue
 
     for no, line in enumerate(lines, 1):
         if NEAR_MISS.match(line) and not HEADING.match(line):
             print(f"ERR\t{path}:{no} 見出しが `### S<4桁>_<2桁> <名前>` の形式でない: {line}")
-    if not headings:
-        print(f"ERR\t{path} に `### S<4桁>_<2桁> <名前>` のシナリオ見出しが無い")
-        continue
-
     # 見出しごとの本文(次の見出しまで)に GIVEN/WHEN/THEN が揃っているか。
     # 本文の切れ目は `### ` で始まる行すべて。書式 NG の見出しを切れ目に含めないと、
     # その下の GIVEN/WHEN/THEN を直前のシナリオの本文として数えて欠落を見逃す。
@@ -97,18 +97,20 @@ if [ -n "$spec_err" ]; then report_ng "spec の書式が仕様どおりでない
 section "シナリオ ID の払い出し(N-2)"
 # 同じ ID を2つの見出しが持つ = 払い出しの重複。ID は不変・再利用禁止。
 dup_spec_ids=$(printf '%s\n' "$spec_id_hits" | sort | uniq -d)
-# ID の先頭4桁は change 番号。フォルダ番号とずれると spec とテストの追跡が壊れる。
-number_mismatch=$(printf '%s\n' "$id_pairs" | awk -F'\t' '
-  $1 ~ /^changes\// {
-    split($1, parts, "/")
-    folder_number = substr(parts[2], 1, 4)
+# ID の先頭4桁は論点番号。decisions/ に実在する論点フォルダの連番と一致しないと、
+# そのシナリオが「どの決定から来たか」を辿れなくなる(@impl-rules.md N-2)。
+topic_numbers=$(find "$DECISION_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null \
+  | sed 's|.*/||; s|^\([0-9]\{4\}\).*|\1|' | grep -E '^[0-9]{4}$' | sort -u)
+number_mismatch=$(nonempty "$id_pairs" | awk -F'\t' -v known="$topic_numbers" '
+  BEGIN { n = split(known, list, "\n"); for (i = 1; i <= n; i++) if (list[i] != "") seen[list[i]] = 1 }
+  $2 != "" {                       # 記入例だけの状態では id_pairs が空になる
     id_number = substr($2, 2, 4)
-    if (id_number != folder_number)
-      print $1 ": " $2 " (フォルダ番号 " folder_number " と不一致)"
+    if (!(id_number in seen))
+      print $1 ": " $2 " (decisions/ に論点 " id_number " が無い)"
   }' | sort -u)
 if [ -n "$dup_spec_ids" ] || [ -n "$number_mismatch" ]; then
   [ -n "$dup_spec_ids" ] && report_ng "同じシナリオ ID が複数の見出しで払い出されている" "$dup_spec_ids"
-  [ -n "$number_mismatch" ] && report_ng "シナリオ ID の change 番号がフォルダ番号と一致しない" "$number_mismatch"
+  [ -n "$number_mismatch" ] && report_ng "シナリオ ID の先頭4桁に対応する論点が decisions/ に無い" "$number_mismatch"
 else
   report_ok
 fi
@@ -209,6 +211,49 @@ if [ -n "$neg" ]; then
 else
   report_ok
 fi
+
+# ---------------------------------------------------------------------------
+# 論点の検査。二系統をフォルダで分けるのをやめた代わりに、種別タグを機械で担保する
+# (@.claude/rules/architecture.md「二系統の対応表」)。出力は TAG / LINK の2種類。
+topic_out=$(python3 - "$DECISION_DIR" <<'PY'
+import os, re, sys
+
+root = sys.argv[1]
+KIND = re.compile(r'種別:\s*(決定的|非決定的)')
+LINK = re.compile(r'反映先')
+MEASURE_FILE = 'result.md'
+
+for state in ('undecided', 'decided'):
+    base = os.path.join(root, state)
+    if not os.path.isdir(base):
+        continue
+    for name in sorted(os.listdir(base)):
+        folder = os.path.join(base, name)
+        topic = os.path.join(folder, 'topic.md')
+        if not os.path.isdir(folder):
+            continue
+        if not os.path.isfile(topic):
+            print(f"TAG\t{folder} に topic.md が無い")
+            continue
+        text = open(topic, encoding='utf-8').read()
+        kind = KIND.search(text)
+        if not kind:
+            print(f"TAG\t{topic} に `種別: 決定的 / 非決定的` が無い")
+        elif kind.group(1) == '決定的' and os.path.isfile(os.path.join(folder, MEASURE_FILE)):
+            # 決定的な論点に計測ファイルがある = 2つのループを混ぜた合図。
+            print(f"TAG\t{topic} は種別が決定的なのに {MEASURE_FILE} が同居している")
+        # 決定済みは統合先が書かれていないと、決めたまま specs/ design/ に反映し忘れる。
+        if state == 'decided' and not LINK.search(text):
+            print(f"LINK\t{topic} に `反映先:` が無い(未統合の疑い)")
+PY
+)
+section "論点の種別タグ(N-8)"
+topic_tag=$(pick TAG "$topic_out")
+if [ -n "$topic_tag" ]; then report_ng "論点の種別が判定できない、または二系統が混ざっている" "$topic_tag"; else report_ok; fi
+
+section "未統合の決定(N-8)"
+topic_link=$(pick LINK "$topic_out")
+if [ -n "$topic_link" ]; then report_ng "決定済みなのに反映先が無い" "$topic_link"; else report_ok; fi
 
 # ---------------------------------------------------------------------------
 if [ "$fail" -eq 0 ]; then echo "整合OK"; else echo "整合NG(上記を修正)"; fi

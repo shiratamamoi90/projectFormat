@@ -27,23 +27,26 @@
 
 1. **`gitignore.template` を `.gitignore` にリネームする**(`mv gitignore.template .gitignore`)。
    **コピー直後・最初のコミット前に必ず行う。** 除外はこのリネームで初めて効き、
-   **機密情報(`.env`)・生成物とキャッシュ・テンプレート同梱物
-   ・ローカルの記録(`decisions/` `experiments/` `baselines/`)** の4区分が追跡対象から外れる
+   **機密情報(`.env`)・生成物とキャッシュ・テンプレート同梱物と記入例
+   ・手元の作業管理(`work/`)** の4区分が追跡対象から外れる。
+   **議論と決定(`decisions/`)・正本(`specs/` `design/`)・比較基準(`baselines/`)は追跡する**
    (区分ごとの中身と理由は `gitignore.template` 自身が正本。ここに一覧を書き写さない)。
    **生成物・キャッシュ(区分2)だけは使用言語で中身が変わるため、既定を置かず全行コメントアウト
    してある。** 言語を決めたら該当行のコメントを外す(言語確定時にまとめて記入する箇所は
    `stack.md`「Stack」の言語/FW に5つまとめてある)。
    続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **git に上げる2つの文書 — `README.md`(使う人向け:導入と使い方)と `DEVELOPMENT.md`(開発する人向け:構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
-3. `changes/0001-example-*`・`experiments/0001-example-*`・`decisions/0001-example-*` を
-   参考にしたら削除(3つとも記入例。テンプレは `.claude/rules/` 側にあるので消しても失われない)。
-4. Claude Code を起動。`/new-change <名前>` で最初の変更を作り、spec を自分で書いて承認。
-5. `/run-loop <change名>` で Red→Green→Refactor を回す。完了したら `/validate`。
+3. 記入例(`decisions/*/000*-example-*`・`specs/0001-example-*.md`・`work/0001-example-*`)を
+   参考にしたら削除(テンプレは `.claude/rules/` 側にあるので消しても失われない)。
+4. Claude Code を起動。`/new-topic <名前>` で最初の論点を開き、案を出して議論する。
+   決まったら `/decide <論点>` で `specs/` `design/` へ統合する。
+5. `/new-work <名前>` で作業単位を切り、`/run-loop <作業名>` で Red→Green→Refactor を回す。
+   完了したら `/validate`。
 
 > **コピー先で git に上げる範囲の正本は `gitignore.template`**(手順1で `.gitignore` になる)。
 > テンプレート同梱物(このファイル・CLAUDE.md・`.claude/`・`scripts/` のフック・雛形と記入例)は
-> 追跡せず、`src/` `tests/` `specs/`・実作業の `changes/NNNN-*/`・`README.md`・`DEVELOPMENT.md`
-> だけをコミットする。**フォーマットの説明(このファイル)は上げず、作ったシステムの説明
+> 追跡せず、`src/` `tests/` `specs/` `design/` `decisions/` `baselines/`・`README.md`・
+> `DEVELOPMENT.md` をコミットする(`work/` は手元の作業管理なので追跡しない)。**フォーマットの説明(このファイル)は上げず、作ったシステムの説明
 > (`README.md` / `DEVELOPMENT.md`)を上げる**という切り分け。フォーマット本体のリポジトリだけは
 > 例外で、同梱物ごと管理するため `.gitignore` が空(冒頭「このリポジトリの現在の状態」)。
 
@@ -65,14 +68,20 @@
 │   ├── settings.team.json          # チーム用 hooks の配線: veto, validate(Scale, マージで有効化)
 │   ├── rules/                      # ルールの正本8本(どれを見るかは CLAUDE.md の参照先表 / Core)
 │   └── skills/                     # スラッシュコマンド(実行 / Core)
-│                                   #   new-change / new-experiment / run-loop / validate の SKILL.md
-├── specs/                          # 決定的部分の source of truth(Core)
-│   ├── rule-engine.md              #   確定仕様(承認・実装済みのものだけ置く)
+│                                   #   new-topic / decide / new-work / run-loop / validate の SKILL.md
+├── decisions/                      # 議論と決定の記録。状態をフォルダで表す(Core)
+│   ├── undecided/                  #   未決定:論点ごとに topic.md(+ 非決定的なら config/result)
+│   │   └── 0002-example-search-depth/
+│   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
+│       └── 0001-example-paralysis/
+├── specs/                          # 統合先:決定済みの仕様書(何を満たすか / Core)
+│   ├── rule-engine.md              #   確定仕様(決定を統合したものだけ置く)
+│   ├── 0001-example-status-condition.md  # 記入例:統合された姿
 │   └── glossary.md                 #   用語集:ドメイン語彙の「正」(N-1。validate.sh が参照)
-├── changes/                        # 仕様ループの作業単位(Core)
-│   └── 0001-example-add-paralysis/ #   記入例:proposal / spec / tasks / diff(中身は spec-rules.md)
-├── experiments/                    # 探索ループの作業単位(Core)
-│   └── 0001-example-mcts-depth/    #   記入例:hypothesis / config / result(中身は experiment-rules.md)
+├── design/                         # 統合先:決定済みの設計書(どう分けて満たすか / Core)
+│   └── overview.md                 #   層の割り当て・契約・境界(分割は自由)
+├── work/                           # 反映作業の単位。**git 追跡外**(Core)
+│   └── 0001-example-add-paralysis/ #   記入例:tasks / diff
 ├── src/                            # 依存方向 engine←agent←eval(Core/Adapt)
 │   ├── engine/                     #   決定的・安定(仕様ループ対象)
 │   ├── agent/                      #   探索(実験で評価)
@@ -81,8 +90,6 @@
 │   ├── engine/                     #   単体:spec の全シナリオ
 │   ├── agent/                      #   単体:スモーク(クラッシュ/予算/再現性)
 │   └── integration/                #   総合:繋いだ経路を最初から最後まで通す
-├── decisions/                      # ADR:設計判断の記録(書く条件・書式は rules/design-rules.md / Scale)
-│   └── 0001-example-language.md    #   記入例
 ├── scripts/
 │   ├── validate.sh                 # 機械検査(項目の正本は impl-rules.md N-8)。/validate が呼ぶ(Core)
 │   └── hooks.sh                    # hooks の実体。format|test(Core)/ veto|validate(Scale)を引数で切替
@@ -92,10 +99,10 @@
 
 ## 規模に応じた拡張
 
-- **個人**: Core のみ。experiments/ を使わないなら無視してよい。
+- **個人**: Core のみ。非決定的な論点が無いなら `config.yaml` / `result.md` は使わなくてよい。
 - **コンペ**: + Adapt(`baselines/` と `src/eval/`)。
-- **チーム**: + Scale(decisions/ 必須・settings.team.json を settings.json にマージ・CI から validate)。
-  既定では `decisions/` `experiments/` `baselines/` を追跡しない(個人前提)。
-  チームで共有するものから該当行を消す(範囲の正本は `gitignore.template` — 上の「使い方」の注記)。
+- **チーム**: + Scale(settings.team.json を settings.json にマージ・CI から validate)。
+  `decisions/` は既定で追跡されるので、議論と決定はそのまま共有される。
+  追跡範囲の正本は `gitignore.template`(上の「使い方」の注記)。
 
 各レイヤーの中身・未収録のもの・設計思想は `.claude/rules/architecture.md`。

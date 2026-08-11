@@ -7,7 +7,7 @@
 | レイヤー | いつ使うか | 内容 |
 |---|---|---|
 | **Core** | 常時(個人開発から) | 二系統原則、基本 skill、format+test フック |
-| **Scale** | 規模が上がったら足す | ADR、危険操作veto、CI連携、sub-agent 並列化 |
+| **Scale** | 規模が上がったら足す | 危険操作veto、CI連携、sub-agent 並列化 |
 | **Adapt** | プロジェクト種別で差替 | 「正」の定義、ドメイン別 skill、`baselines/` や `migrations/` 等 |
 
 ## 実装手段(横):担保の強さ
@@ -25,14 +25,14 @@
 
 | | 方針 | 実行 | 強制 |
 |---|---|---|---|
-| **Core** | 二系統原則・Don't | /new-change, /new-experiment, /validate, /run-loop | format on edit, test on stop |
+| **Core** | 二系統原則・Don't | /new-topic, /decide, /new-work, /validate, /run-loop | format on edit, test on stop |
 | **Scale** | チーム規約・ロール | /eval, /team-onboarding | 危険操作veto, 時間予算, CI |
 | **Adapt** | 「正」の定義・不変条件 | ドメイン別コマンド | ドメイン別検査 |
 
 各セルは独立。1セルの変更が他に波及しない。
 
 実体の所在(このテンプレートに収録済みのもの):
-- Core・実行の skill 4つ → `.claude/skills/{new-change,new-experiment,run-loop,validate}/SKILL.md`
+- Core・実行の skill 5つ → `.claude/skills/{new-topic,decide,new-work,run-loop,validate}/SKILL.md`
 - Core・強制の hooks(format on edit / test on stop)→ 配線は `.claude/settings.json`、
   実体は `scripts/hooks.sh format` / `scripts/hooks.sh test`
 - Scale・強制のうち veto と validate → 配線は `.claude/settings.team.json`(settings.json にマージで
@@ -40,15 +40,40 @@
 - Scale・実行の /eval /team-onboarding、Scale・強制の時間予算・CI → **未収録**。規模が上がった時に追加する。
 - Adapt 行 → 種別確定後に追加する(下の「種別ごとの Adapt」)。テンプレートには baselines/ の雛形のみ収録。
 
+## 決定の流れ(全体像)
+
+```
+decisions/undecided/NNNN-<論点>/     案を出し、精査し、議論する
+        ↓ 決まったら フォルダごと移す
+decisions/decided/NNNN-<論点>/       決定 + 理由 + 却下案 + 反映先
+        ↓ その場で統合する(未統合の decided を残さない)
+specs/(何を満たすか)  design/(どう分けて満たすか)   ← 正本
+        ↓ 正本をもとに作業単位を切る
+work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
+        ↓
+テスト → 実装
+```
+
+**議論・計測・判断は1つの入れ物(`decisions/`)にまとめ、状態(未決定 / 決定済み)を
+フォルダで表す。** 状態を文書中のフラグで持つと二重管理になるため、フォルダの移動そのものを
+状態遷移にする。
+
 ## 二系統の対応表
+
+**二系統は入れ物ではなく論点の属性**になった(フォルダは共通)。`topic.md` 冒頭の
+**種別タグが正**で、`scripts/validate.sh` が欠落を検査する。
 
 | | 仕様ループ(決定的) | 探索ループ(非決定的) |
 |---|---|---|
-| 単位フォルダ | changes/NNNN-xxx/ | experiments/NNNN-xxx/ |
-| 中身 | proposal / spec / tasks / diff | hypothesis / config / result |
-| 完了先 | specs/ に反映しアーカイブ | result を残しアーカイブ |
+| 単位フォルダ | `decisions/{undecided,decided}/NNNN-xxx/`(**共通**) | 同左 |
+| 種別の表し方 | `topic.md` 冒頭に「種別: 決定的」 | 「種別: 非決定的」 |
+| 決め方 | 案を並べて比較し、根拠で決める | **計測で決める**(`config.yaml` / `result.md` を同居させる) |
+| 統合先 | `specs/`(と必要なら `design/`) | `design/`(設定・方針として) |
 | テスト | 単体で全シナリオ + 総合で経路(主役) | 強さは縛らない。クラッシュ/予算のみ決定的にテスト |
 | 対応コード | src/engine(安定・決定的) | src/agent, src/eval(探索) |
+
+**混ぜない**という原則は変わらない。1つの論点に両方の性質があるなら、決定的な部分と
+非決定的な部分を**別の論点に切り分ける**(切り分け方は @spec-rules.md「何を仕様化するか」)。
 
 ## 依存方向(不変条件)
 
@@ -70,7 +95,7 @@ src/engine  ← src/agent  ← src/eval
 
 | 順位 | 層 | 実体 | 食い違ったときの扱い |
 |---|---|---|---|
-| 1 | ドキュメント | `specs/`, `changes/*/spec.md`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
+| 1 | ドキュメント | `specs/`, `design/`, `decisions/decided/`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
 | 2 | テスト | `tests/`(単体・総合) | ドキュメントと違えばテストが誤り。仕様に合わせて直す |
 | 3 | ソースコード | `src/`, `scripts/` | テストと違えばコードが誤り。テストに合わせて直す |
 

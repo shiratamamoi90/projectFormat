@@ -14,10 +14,16 @@
 
 新しい作業を始めたら、**まず「決定的か?」を判定して報告する**こと。判定を飛ばして実装に入らない。2つのループを混ぜない。
 
-- **決定的**(同じ入力 → 同じ出力)= **仕様ループ**:仕様 → テスト → 実装 → テスト
+判定した種別は、論点フォルダの `topic.md` 冒頭に**タグとして必ず書く**(書き忘れは `/validate` が NG にする)。
+
+- **決定的**(同じ入力 → 同じ出力)= **仕様ループ**:論点 → 決定 → 仕様/設計 → テスト → 実装 → テスト
   詳細は @.claude/rules/spec-rules.md / @.claude/rules/test-rules.md / @.claude/rules/impl-rules.md に従う。
-- **非決定的**(指標で測るしかない)= **探索ループ**:仮説 → 設定 → 計測 → 考察
+- **非決定的**(指標で測るしかない)= **探索ループ**:仮説 → 設定 → 計測 → 考察 → 決定
   詳細は @.claude/rules/experiment-rules.md に従う。
+
+どちらも入れ物は同じ `decisions/`(未決定 / 決定済みをフォルダで分ける)。**入れ物が同じでも
+2つのループを混ぜない** — 両方の性質を持つ作業は、決定的な部分と非決定的な部分を別の論点に切り分ける。
+全体の流れ(論点 → 決定 → `specs/`・`design/` → `work/` → テスト・実装)は @.claude/rules/architecture.md「決定の流れ」。
 
 判定の指針:出力が一意に決まり受け入れ条件を書けるなら決定的。勝率・精度・速度など指標でしか良し悪しを測れないなら非決定的。
 LLM・乱数が**混在**する処理は丸ごとどちらかに入れず境界で分割する(分割基準は @.claude/rules/spec-rules.md の「何を仕様化するか」)。
@@ -33,7 +39,7 @@ LLM・乱数が**混在**する処理は丸ごとどちらかに入れず境界�
   (強制は /run-loop の停止条件。詳細は @.claude/rules/test-rules.md「着手の許可」)
 - **人間が spec と設計案を承認するまで実装・テストを書かない。** ここが唯一 AI に丸投げしない工程。
   上の許可とは別の関門で、**3つとも要る**(spec 承認 = 「何を作るか」、設計案の承認 = 「どう分けて作るか」、
-  許可 = 「今それに着手してよいか」)。設計案の書き方と ADR を書く条件は @.claude/rules/design-rules.md。
+  許可 = 「今それに着手してよいか」)。論点の書き方と切り分けの粒度は @.claude/rules/design-rules.md。
 - **仕様が決まる前に設計しない。実装に合わせて設計を黙って変えない。** 通らないと分かったら止まって
   設計案を出し直し、承認を取り直す(@.claude/rules/design-rules.md「設計を変えたくなったとき」)。
 - **stack.md の `<...>` スロットが未記入のまま実装を始めない。** どこがスロットかは stack.md 自身が
@@ -63,15 +69,17 @@ CLAUDE.md はハードポリシーではない。絶対則は可能な限り hoo
 | 技術要素・環境・コマンド・「正」の定義 | `.claude/rules/stack.md` |
 | 設計思想・レイヤー(Core/Scale/Adapt)・依存方向の地図 | `.claude/rules/architecture.md` |
 | 仕様(GIVEN/WHEN/THEN・承認点) | `.claude/rules/spec-rules.md` |
-| 設計(部品の分け方の決め方・ADR を書く条件・承認点) | `.claude/rules/design-rules.md` |
-| 設計判断の記録(ADR。書式と番号の規律は design-rules.md) | `decisions/NNNN-<名前>.md` |
+| 設計(部品の分け方の決め方・承認点) | `.claude/rules/design-rules.md` |
+| 議論と決定の記録(案・精査・却下理由) | `decisions/undecided/` → `decisions/decided/` |
+| 決定済みの正本 | `specs/`(何を満たすか)/ `design/`(どう分けて満たすか) |
+| 反映作業の単位(git 追跡外) | `work/NNNN-<作業名>/`(tasks / diff) |
 | テスト(テスト先行・回帰) | `.claude/rules/test-rules.md` |
 | 実装・インフラ・**不変条件**・規約(コメント/ハードコード禁止/共通化) | `.claude/rules/impl-rules.md` |
 | 探索/実験(仮説・計測・再現性) | `.claude/rules/experiment-rules.md` |
 | セキュリティ(機密・危険操作・依存・入力検証) | `.claude/rules/security-rules.md` |
-| スラッシュコマンド | `.claude/skills/`(/new-change /new-experiment /run-loop /validate) |
+| スラッシュコマンド | `.claude/skills/`(/new-topic /decide /new-work /run-loop /validate) |
 | hooks の配線 | `.claude/settings.json`(Core: format on edit, test on stop)/ `.claude/settings.team.json`(Scale: veto, validate。マージで有効化) |
 | hooks の実体 | `scripts/hooks.sh <format\|test\|veto\|validate>`(4イベントとも中身はこの1本) |
 
-この表のファイル(rules 8本・skill 4つ・settings 2つ・スクリプト2本)はすべて本リポジトリに
+この表のファイル(rules 8本・skill 5つ・settings 2つ・スクリプト2本)はすべて本リポジトリに
 収録済み。パスはリポジトリ直下からの相対パス。

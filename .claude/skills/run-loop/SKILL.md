@@ -1,21 +1,21 @@
 ---
 name: run-loop
-description: 仕様ループの1サイクル(Red→Green→Refactor)を回す。承認済み spec がある change に対して使う。
+description: 仕様ループの1サイクル(Red→Green→Refactor)を回す。統合済みの specs/ design/ がある作業単位に対して使う。
 ---
 
-引数 $ARGUMENTS で指定された change フォルダ(例: 0003-add-paralysis)に対し、TDD を1周回す。
+引数 $ARGUMENTS で指定された作業フォルダ(例: work/0003-add-paralysis)に対し、TDD を1周回す。
 
 前提確認(**どちらか欠けたら停止する。この skill の停止条件**):
 - **テストと実装の作成・実行について、人間の明確な許可があること。** 無ければ、これから書く
   テストと実装(対象ファイルとシナリオ ID)、実行するコマンドを示して停止し、許可を求める。
   許可が出れば作成・実行してよい。**この確認はどの場合でも省略しない** — 続きの作業でも、
   バグ修正でも、1シナリオだけでも、毎回取る(@.claude/rules/test-rules.md「着手の許可」)。
-- 対象 change の spec.md が人間に承認済みであること。未承認なら停止して確認を促す。
-- **proposal.md の設計案が人間に承認済みであること**(@.claude/rules/design-rules.md「承認点」)。
-  未記入・未承認なら停止する。spec の承認だけで実装に入らない。
+- 反映元が **`specs/` と `design/` に統合済み**であること(`/decide` を通っていること)。
+  `decisions/undecided/` にしか無い、または `decided/` に未統合で残っているなら停止する。
+  **決まっていないものを実装しない。**
 
 サイクル:
-1. spec の未実装シナリオを1つ選ぶ。
+1. `specs/` の未実装シナリオを1つ選ぶ(対象は work フォルダの `tasks.md` の反映元に限る)。
 2. そのシナリオに対応する**失敗する単体テスト**を tests/engine/(または tests/agent/)に書く。
 3. テストを実行し、**赤であることを確認**して報告(緑なら検証になっていないので作り直す)。
 4. テストを通す**最小実装**を src/ に書く。engine の依存方向(engine←agent←eval)を崩さない。
@@ -25,6 +25,8 @@ description: 仕様ループの1サイクル(Red→Green→Refactor)を回す。
 6. tasks.md の該当項目にチェック。残シナリオがあれば次へ。
 7. 全シナリオが緑になったら、**総合テスト**を tests/integration/ に書いて緑にする
    (@.claude/rules/test-rules.md「単体テストと総合テスト」)。単体だけで閉じない。
-8. 総合テストが緑になってから specs/ 反映とアーカイブを提案。
+8. 総合テストが緑になってから `diff.md` を更新し、作業フォルダを閉じることを提案。
+   **`specs/` `design/` は作業中に書き換えない**(統合は /decide の役目。
+   通らないなら止まって論点に差し戻す — @.claude/rules/architecture.md「整合性の優先順位」)。
 
 各ステップで赤→緑の遷移を必ず示すこと。

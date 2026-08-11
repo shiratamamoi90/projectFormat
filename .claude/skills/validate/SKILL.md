@@ -17,7 +17,7 @@ description: spec とテストの整合を検査する。OpenSpec の validate -
 
 - **判定はスクリプトの出力を正とする。同じ項目を目視で再判定しない。**
 - 出力のセクション名がそのまま N-8 の項目名。NG 行の「ファイル:該当箇所」をそのまま報告に使う。
-- 記入例の change(`changes/*-example-*`)は spec↔test 照合の対象外(実作業ではないため)。
+- 記入例(`*-example-*`)は spec↔test 照合の対象外(実作業ではないため)。
 - 機械検査できる項目を新たに見つけたら、N-8 と `scripts/validate.sh` の**両方**への追加を提案する。
 
 ## 目視判定(この skill が読んで判断する)
@@ -32,15 +32,17 @@ description: spec とテストの整合を検査する。OpenSpec の validate -
 - `[要確認]` タグが未解決のまま実装に進んでいないか。
 - **ドキュメント同士の食い違い**(正本と写しのずれ):stack.md の Commands ↔ settings.json の
   hooks、TEMPLATE.md のディレクトリ構造 ↔ 実ファイル、CLAUDE.md の参照先 ↔ 実在するファイル。
-- **設計判断が記録されているか**(@.claude/rules/design-rules.md):進行中の change の
-  proposal.md に設計案(採らなかった案とその理由を含む)があるか。ADR を書く条件に該当する
-  判断が、`decisions/` に残らないまま実装されていないか。
+- **設計判断が記録されているか**(@.claude/rules/design-rules.md):`decisions/decided/` の
+  各論点に、採らなかった案とその理由があるか。独立した論点にすべき判断が、
+  `decisions/` に残らないまま `design/` や実装に現れていないか。
+- **未決定が決まったように扱われていないか**:`decisions/undecided/` の論点の結論が、
+  `specs/` `design/` や実装に先回りして反映されていないか。
 - 仕様に出てくる概念が用語集に登録されているか(未登録の語を使っていないか)。
 - result.md にシードや依存固定の記述なしに数値が書かれていないか。
 
 ### 2. ドキュメント ↔ テスト
 
-- change ごとに**総合**テスト(tests/integration/)が1本以上あるか(ID は付けない)。
+- 作業単位ごとに**総合**テスト(tests/integration/)が1本以上あるか(ID は付けない)。
 - 仕様に無い挙動をテストが要求していないか(テスト側の自己解釈)。
 
 ### 3. テスト ↔ ソースコード
