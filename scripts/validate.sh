@@ -115,15 +115,26 @@ if [ -n "$doc_err" ]; then report_ng "要件の書式が仕様どおりでない
 section "シナリオ ID の払い出し(N-2)"
 # 同じ ID を2つの見出しが持つ = 払い出しの重複。ID は不変・再利用禁止。
 dup_doc_ids=$(printf '%s\n' "$doc_id_hits" | sort | uniq -d)
-# ID の先頭4桁は論点番号。decisions/ に実在する論点フォルダの連番と一致しないと、
-# そのシナリオが「どの決定から来たか」を辿れなくなる(@impl-rules.md N-2)。
-topic_numbers=$(find "$DECISION_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null \
-  | sed 's|.*/||; s|^\([0-9]\{4\}\).*|\1|' | grep -E '^[0-9]{4}$' | sort -u)
-number_mismatch=$(nonempty "$id_pairs" | awk -F'\t' -v known="$topic_numbers" '
-  BEGIN { n = split(known, list, "\n"); for (i = 1; i <= n; i++) if (list[i] != "") seen[list[i]] = 1 }
+# ID の先頭4桁は論点番号。**決定済み**の論点に対応していなければならない。
+# 未決定(undecided)の番号で要件が書かれていたら「決まっていないものを先に書いた」合図で、
+# このフォルダの核になる規律(@.claude/rules/doc-rules.md「確定の流れ」)が破れている。
+folder_numbers() {   # $1 = undecided | decided
+  find "$DECISION_DIR/$1" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+    | sed 's|.*/||; s|^\([0-9]\{4\}\).*|\1|' | grep -E '^[0-9]{4}$' | sort -u
+}
+decided_numbers=$(folder_numbers decided)
+undecided_numbers=$(folder_numbers undecided)
+number_mismatch=$(nonempty "$id_pairs" | awk -F'\t' -v decided="$decided_numbers" -v undecided="$undecided_numbers" '
+  BEGIN {
+    n = split(decided, a, "\n");   for (i = 1; i <= n; i++) if (a[i] != "") ok[a[i]] = 1
+    m = split(undecided, b, "\n"); for (i = 1; i <= m; i++) if (b[i] != "") pending[b[i]] = 1
+  }
   $2 != "" {                       # 記入例だけの状態では id_pairs が空になる
     id_number = substr($2, 2, 4)
-    if (!(id_number in seen))
+    if (id_number in ok) next
+    if (id_number in pending)
+      print $1 ": " $2 " (論点 " id_number " はまだ undecided。決まる前に要件を書いている)"
+    else
       print $1 ": " $2 " (decisions/ に論点 " id_number " が無い)"
   }' | sort -u)
 if [ -n "$dup_doc_ids" ] || [ -n "$number_mismatch" ]; then
@@ -187,7 +198,10 @@ fi
 section "用語の揺れ(N-1)"
 hits=""
 for word in $banned; do
-  hit=$(grep -rnw -- "$word" "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" 2>/dev/null)
+  # 要件文書こそ用語の正本なので docs/ も見る。**用語集自身は除外**する
+  # (「使ってはいけない表記」列にその語が並んでいるため、必ず自己ヒットする)。
+  hit=$(grep -rnw -- "$word" "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" "${DOC_DIRS[@]}" 2>/dev/null \
+        | grep -v "^${GLOSSARY}:")
   [ -n "$hit" ] && hits="${hits}${hit}"$'\n'
 done
 hits=$(nonempty "$hits")
@@ -239,6 +253,7 @@ import os, re, sys
 root = sys.argv[1]
 KIND = re.compile(r'種別:\s*(決定的|非決定的)')
 LINK = re.compile(r'反映先')
+PATH_IN_LINK = re.compile(r'`([A-Za-z0-9_./-]+\.[A-Za-z0-9]+)`')   # `docs/foo.md` の形だけ拾う
 MEASURE_FILE = 'result.md'
 
 for state in ('undecided', 'decided'):
@@ -260,9 +275,22 @@ for state in ('undecided', 'decided'):
         elif kind.group(1) == '決定的' and os.path.isfile(os.path.join(folder, MEASURE_FILE)):
             # 決定的な論点に計測ファイルがある = 2つのループを混ぜた合図。
             print(f"TAG\t{topic} は種別が決定的なのに {MEASURE_FILE} が同居している")
+        elif (kind.group(1) == '非決定的' and state == 'decided'
+              and not os.path.isfile(os.path.join(folder, MEASURE_FILE))):
+            # 非決定的な論点は計測で決める。実測値なしで決定済みにしたら根拠が無い。
+            print(f"TAG\t{topic} は種別が非決定的なのに {MEASURE_FILE} が無い(計測せずに決めている)")
+        if state != 'decided':
+            continue
         # 決定済みは反映先が書かれていないと、決めたまま docs/ に反映し忘れる。
-        if state == 'decided' and not LINK.search(text):
+        link = LINK.search(text)
+        if not link:
             print(f"LINK\t{topic} に `反映先:` が無い(未統合の疑い)")
+            continue
+        # 反映先がパスを名指ししているなら、そのファイルが実在するかまで見る。
+        # 「統合したつもり」で存在しない先を指していると、決定がどこにも反映されない。
+        for ref in PATH_IN_LINK.findall(text[link.start():].splitlines()[0]):
+            if not os.path.exists(ref):
+                print(f"LINK\t{topic} の反映先 {ref} が実在しない")
 PY
 )
 section "論点の種別タグ(N-8)"
