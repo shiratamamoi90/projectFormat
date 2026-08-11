@@ -25,7 +25,8 @@ description: 仕様ループの1サイクル(Red→Green→Refactor)を回す。
 6. tasks.md の該当項目にチェック。残シナリオがあれば次へ。
 7. 全シナリオが緑になったら、**総合テスト**を tests/integration/ に書いて緑にする
    (@.claude/rules/test-rules.md「単体テストと総合テスト」)。単体だけで閉じない。
-8. 総合テストが緑になってから `diff.md` を更新し、作業フォルダを閉じることを提案。
+8. 総合テストが緑になってから `diff.md` の完了条件を確認し、**作業フォルダの削除を提案する**
+   (閉じる = 削除。何を残すかは @.claude/rules/architecture.md「終わり方」)。
    **`docs/` は作業中に書き換えない**(統合は /decide の役目。
    通らないなら止まって論点に差し戻す — @.claude/rules/architecture.md「整合性の優先順位」)。
 
