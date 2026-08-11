@@ -91,7 +91,7 @@ case "${1:-}" in
     done
     ;;
   validate)
-    # Stop: 整合検査を回して通知する(Scale)。NG でもブロックしないのは、spec を書いた直後や
+    # Stop: 整合検査を回して通知する(Scale)。NG でもブロックしないのは、要件を書いた直後や
     # Red フェーズでは未実装 NG が正常な状態で、止めると作業が進まないため。CI では
     # scripts/validate.sh を直接呼び exit code で落とす。NG で停止させたいチームは
     # 次の行を `scripts/validate.sh || exit 2` に変える(exit 2 だけが Stop をブロックする)。

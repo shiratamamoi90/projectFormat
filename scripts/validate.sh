@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 自前 validate(OpenSpec の validate --strict 相当の最小版)。
 # 検査項目の正本は @.claude/rules/impl-rules.md「命名規則」N-8。項目を増やしたら N-8 も直す。
-# 依存: bash(comm のプロセス置換)/ python3(spec・用語集の解析)。sh では動かない。
+# 依存: bash(comm のプロセス置換)/ python3(要件・用語集の解析)。sh では動かない。
 #
 # なぜ cd するか:hook・CI・任意の cwd から呼ばれても同じ結果にするため
 # (相対パスのまま呼ばれると docs/ が見つからず「NG が無い」と誤報告する)。
@@ -42,16 +42,16 @@ nonempty() { printf '%s\n' "${1:-}" | grep -v '^$' || true; }
 pick() { printf '%s\n' "${2:-}" | awk -F'\t' -v tag="$1" '$1 == tag { sub(/^[^\t]*\t/, ""); print }'; }
 
 # ---------------------------------------------------------------------------
-# spec 文書の解析はここ1箇所だけで行う。シナリオ見出しの書式を bash 側にも書くと
+# 要件文書の解析はここ1箇所だけで行う。シナリオ見出しの書式を bash 側にも書くと
 # 同じ知識が2箇所になり、片方だけ直して検査がすり抜ける(@impl-rules.md「共通化」)。
 # 出力は ERR(書式NG)と ID(ファイルとシナリオ ID の対)の2種類。
 #
 # 対象ファイルは引数で渡す(パイプ + xargs にすると heredoc と stdin を取り合い、
 # python がプログラムを読めずに黙って何も検査しなくなる)。
-mapfile -t spec_docs < <(find "${DOC_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
-spec_out=""
-if [ "${#spec_docs[@]}" -gt 0 ]; then
-  spec_out=$(python3 - "${spec_docs[@]}" <<'PY'
+mapfile -t doc_files < <(find "${DOC_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
+doc_out=""
+if [ "${#doc_files[@]}" -gt 0 ]; then
+  doc_out=$(python3 - "${doc_files[@]}" <<'PY'
 import re, sys
 
 HEADING = re.compile(r'^### (S\d{4}_\d{2}) +\S')
@@ -84,19 +84,19 @@ for path in sys.argv[1:]:
 PY
   )
 fi
-spec_err=$(pick ERR "$spec_out")
+doc_err=$(pick ERR "$doc_out")
 # 記入例は実作業ではないため ID 照合から外す(消すまで未実装 NG が出続けるのを防ぐ)。
-id_pairs=$(pick ID "$spec_out" | grep -v -- "$EXAMPLE_MARK" || true)
-# 払い出し済み ID の一覧。重複検査と spec↔test 照合の両方が使うので1回だけ作る。
-spec_id_hits=$(nonempty "$(printf '%s\n' "$id_pairs" | cut -f2)")
+id_pairs=$(pick ID "$doc_out" | grep -v -- "$EXAMPLE_MARK" || true)
+# 払い出し済み ID の一覧。重複検査と要件↔test 照合の両方が使うので1回だけ作る。
+doc_id_hits=$(nonempty "$(printf '%s\n' "$id_pairs" | cut -f2)")
 
 section "要件の書式(見出し・GIVEN/WHEN/THEN)"
-if [ -n "$spec_err" ]; then report_ng "要件の書式が仕様どおりでない" "$spec_err"; else report_ok; fi
+if [ -n "$doc_err" ]; then report_ng "要件の書式が仕様どおりでない" "$doc_err"; else report_ok; fi
 
 # ---------------------------------------------------------------------------
 section "シナリオ ID の払い出し(N-2)"
 # 同じ ID を2つの見出しが持つ = 払い出しの重複。ID は不変・再利用禁止。
-dup_spec_ids=$(printf '%s\n' "$spec_id_hits" | sort | uniq -d)
+dup_doc_ids=$(printf '%s\n' "$doc_id_hits" | sort | uniq -d)
 # ID の先頭4桁は論点番号。decisions/ に実在する論点フォルダの連番と一致しないと、
 # そのシナリオが「どの決定から来たか」を辿れなくなる(@impl-rules.md N-2)。
 topic_numbers=$(find "$DECISION_DIR" -mindepth 2 -maxdepth 2 -type d 2>/dev/null \
@@ -108,8 +108,8 @@ number_mismatch=$(nonempty "$id_pairs" | awk -F'\t' -v known="$topic_numbers" '
     if (!(id_number in seen))
       print $1 ": " $2 " (decisions/ に論点 " id_number " が無い)"
   }' | sort -u)
-if [ -n "$dup_spec_ids" ] || [ -n "$number_mismatch" ]; then
-  [ -n "$dup_spec_ids" ] && report_ng "同じシナリオ ID が複数の見出しで払い出されている" "$dup_spec_ids"
+if [ -n "$dup_doc_ids" ] || [ -n "$number_mismatch" ]; then
+  [ -n "$dup_doc_ids" ] && report_ng "同じシナリオ ID が複数の見出しで払い出されている" "$dup_doc_ids"
   [ -n "$number_mismatch" ] && report_ng "シナリオ ID の先頭4桁に対応する論点が decisions/ に無い" "$number_mismatch"
 else
   report_ok
@@ -182,10 +182,10 @@ fi
 # ---------------------------------------------------------------------------
 section "要件 ↔ test のシナリオ ID 照合(N-2)"
 test_id_hits=$(grep -rhoE "$SCENARIO_ID" "${TEST_DIRS[@]}" 2>/dev/null || true)   # 下の重複検査も使う
-spec_ids=$(printf '%s\n' "$spec_id_hits" | sort -u)
+doc_ids=$(printf '%s\n' "$doc_id_hits" | sort -u)
 test_ids=$(nonempty "$test_id_hits" | sort -u)
-missing=$(comm -23 <(nonempty "$spec_ids") <(nonempty "$test_ids"))
-ghost=$(comm -13 <(nonempty "$spec_ids") <(nonempty "$test_ids"))
+missing=$(comm -23 <(nonempty "$doc_ids") <(nonempty "$test_ids"))
+ghost=$(comm -13 <(nonempty "$doc_ids") <(nonempty "$test_ids"))
 if [ -n "$missing" ] || [ -n "$ghost" ]; then
   [ -n "$missing" ] && report_ng "要件にあって test が無い(未実装)" "$missing"
   [ -n "$ghost" ] && report_ng "test にあって要件に無い(幽霊テスト)" "$ghost"
