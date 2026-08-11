@@ -40,10 +40,10 @@
 
 ## 却下した語
 
-同義語の再提案を防ぐための記録。ここにある語は再検討しない(覆すなら change を通す)。
+同義語の再提案を防ぐための記録。ここにある語は再検討しない(覆すなら新しい論点を通す)。
 
-| 却下した語 | 採用した語 | 却下理由 | 決定した change |
+| 却下した語 | 採用した語 | 却下理由 | 決定した論点 |
 |---|---|---|---|
-| game_state | `battle_state` | 「正」が「バトル場」と呼ぶ範囲より広く読める | 0001-example-add-paralysis |
-| ailment | `status_condition` | 「正」の表記が「状態異常」。訳語を2つ持たない | 0001-example-add-paralysis |
-| move | `action` | 技(technique)と紛らわしい。操作単位は action に統一 | 0001-example-add-paralysis |
+| game_state | `battle_state` | 「正」が「バトル場」と呼ぶ範囲より広く読める | 0001-example-paralysis |
+| ailment | `status_condition` | 「正」の表記が「状態異常」。訳語を2つ持たない | 0001-example-paralysis |
+| move | `action` | 技(technique)と紛らわしい。操作単位は action に統一 | 0001-example-paralysis |
