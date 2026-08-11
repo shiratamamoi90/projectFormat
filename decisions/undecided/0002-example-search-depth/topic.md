@@ -2,10 +2,10 @@
 
 - **種別: 非決定的**(勝率と思考時間という指標でしか良し悪しを測れない)
 - **状態: 未決定**
-- **反映先(予定): `design/overview.md`「agent の探索設定」**
+- **反映先(予定): `—`**(探索設定の値は config に置く。要件には及ばない見込み)
 
 > これは未決定論点の記入例。**非決定的な論点なので、決め方は計測**(`config.yaml` と `result.md`)。
-> 決定的な論点ならこの2ファイルは置かない。書式の正本は `.claude/rules/design-rules.md`、
+> 決定的な論点ならこの2ファイルは置かない。書式の正本は `.claude/rules/decision-rules.md`、
 > 計測の規律は `.claude/rules/experiment-rules.md`。
 
 ## 何を決めるか

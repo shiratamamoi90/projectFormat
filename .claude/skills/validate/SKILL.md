@@ -1,6 +1,6 @@
 ---
 name: validate
-description: spec とテストの整合を検査する。OpenSpec の validate --strict 相当を自前で行う。
+description: 要件とテストの整合を検査する。OpenSpec の validate --strict 相当を自前で行う。
 ---
 
 進行中および確定済みの仕様を検査して、欠落を報告する。
@@ -27,16 +27,16 @@ description: spec とテストの整合を検査する。OpenSpec の validate -
 - 正常系だけで異常系・境界シナリオが欠けていないか。
 - **肯定側だけで「してはいけない動作」のシナリオが欠けていないか** — 要件ごとに、禁止された
   操作・遷移 / 対象外への波及 / 意図しない副作用の3種を確認する
-  (@.claude/rules/spec-rules.md「必須カバレッジ」。該当しないなら無くてよいが、
+  (@.claude/rules/requirement-rules.md「必須カバレッジ」。該当しないなら無くてよいが、
   **確認した形跡が無いまま肯定側だけの要件が並んでいたら指摘する**)。
 - `[要確認]` タグが未解決のまま実装に進んでいないか。
 - **ドキュメント同士の食い違い**(正本と写しのずれ):stack.md の Commands ↔ settings.json の
   hooks、TEMPLATE.md のディレクトリ構造 ↔ 実ファイル、CLAUDE.md の参照先 ↔ 実在するファイル。
-- **設計判断が記録されているか**(@.claude/rules/design-rules.md):`decisions/decided/` の
+- **設計判断が記録されているか**(@.claude/rules/decision-rules.md):`decisions/decided/` の
   各論点に、採らなかった案とその理由があるか。独立した論点にすべき判断が、
-  `decisions/` に残らないまま `design/` や実装に現れていないか。
+  `decisions/` に残らないまま実装に現れていないか。
 - **未決定が決まったように扱われていないか**:`decisions/undecided/` の論点の結論が、
-  `specs/` `design/` や実装に先回りして反映されていないか。
+  `requirements/` や実装に先回りして反映されていないか。
 - 仕様に出てくる概念が用語集に登録されているか(未登録の語を使っていないか)。
 - result.md にシードや依存固定の記述なしに数値が書かれていないか。
 

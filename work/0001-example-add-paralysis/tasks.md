@@ -1,6 +1,6 @@
 # 作業 0001: まひ状態を実装する(記入例)
 
-反映元:`specs/0001-example-status-condition.md`(S0001_01〜05)/ `design/overview.md`「engine の構成」
+反映元:`requirements/0001-example-status-condition.md`(S0001_01〜05)
 
 > ここは**決まったことを反映する作業の管理**。案や議論は書かない(それは `decisions/`)。
 > 仕様・設計を作業中に書き換えない。通らないと分かったら止まって論点に差し戻す

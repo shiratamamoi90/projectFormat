@@ -13,8 +13,8 @@ description: 新しい論点フォルダを decisions/undecided/ に作り、案
    指標でしか良し悪しを測れないなら非決定的。**両方の性質があるなら論点を分ける**
    (混ぜない。@.claude/rules/architecture.md「二系統の対応表」)。
 3. `decisions/undecided/NNNN-$ARGUMENTS/topic.md` を作る。書式は
-   @.claude/rules/spec-rules.md「topic.md テンプレ」(設計の論点なら
-   @.claude/rules/design-rules.md「設計の論点で特に埋めるところ」も見る)。**冒頭の種別タグを必ず埋める**
+   @.claude/rules/requirement-rules.md「topic.md テンプレ」(切り方と粒度は
+   @.claude/rules/decision-rules.md)。**冒頭の種別タグを必ず埋める**
    (/validate が欠落を NG にする)。
 4. **非決定的と判定した場合のみ** `config.yaml` と `result.md` を追加し、`topic.md` に
    「測り方」と「中止条件」を書く(@.claude/rules/experiment-rules.md)。

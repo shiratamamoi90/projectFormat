@@ -1,7 +1,7 @@
 # Baselines
 
 **非決定的な論点を測るときの比較基準**(@.claude/rules/experiment-rules.md)。
-最初にここを実装し、`specs/` で仕様化する(baseline 自体は決定的なので TDD 対象)。
+最初にここを実装し、`requirements/` で仕様化する(baseline 自体は決定的なので TDD 対象)。
 以下は記入例なので、プロジェクトに合わせて置き換える。
 
 - `random` … 合法手から一様ランダムに選ぶ

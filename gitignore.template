@@ -9,7 +9,7 @@
 #
 # 【追跡する = 自分が書いた成果物だけ】
 #   src/  tests/  .gitignore
-#   decisions/(議論と決定の記録)  specs/(仕様書)  design/(設計書)  baselines/
+#   decisions/(議論と決定の記録)  requirements/(要件)  baselines/
 #   README.md(使用者向け)  DEVELOPMENT.md(開発者向け)
 #
 # 【除外する = 次の4区分】区分ごとの中身と理由は下の各ブロックに書いてある。
@@ -85,10 +85,10 @@
 
 # 記入例(参考にしたら削除する。TEMPLATE.md 手順3)
 decisions/*/*-example-*/
-specs/*-example-*.md
+requirements/*-example-*.md
 
 # --- 4. 手元の作業管理 ------------------------------------------------------
-# 反映作業の単位。仕様も設計もここには無い(正本は specs/ design/、経緯は decisions/)ので、
+# 反映作業の単位。要件はここには無い(正本は requirements/、経緯は decisions/)ので、
 # 共有する必要がない。**議論と決定・正本・比較基準は追跡する** — 決定の経緯と再現条件が
 # 手元に留まると「なぜこうなっているのか」が失われるため。
 /work/

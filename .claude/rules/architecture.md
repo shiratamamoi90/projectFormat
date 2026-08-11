@@ -47,7 +47,7 @@ decisions/undecided/NNNN-<論点>/     案を出し、精査し、議論する
         ↓ 決まったら フォルダごと移す
 decisions/decided/NNNN-<論点>/       決定 + 理由 + 却下案 + 反映先
         ↓ その場で統合する(未統合の decided を残さない)
-specs/(何を満たすか)  design/(どう分けて満たすか)   ← 正本
+requirements/                        何を満たすか(← 正本。どう作るかはコードが正本)
         ↓ 正本をもとに作業単位を切る
 work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
         ↓
@@ -68,12 +68,12 @@ work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
 | 単位フォルダ | `decisions/{undecided,decided}/NNNN-xxx/`(**共通**) | 同左 |
 | 種別の表し方 | `topic.md` 冒頭に「種別: 決定的」 | 「種別: 非決定的」 |
 | 決め方 | 案を並べて比較し、根拠で決める | **計測で決める**(`config.yaml` / `result.md` を同居させる) |
-| 統合先 | `specs/`(と必要なら `design/`) | `design/`(設定・方針として) |
+| 統合先 | `requirements/` に要件として | 決めた値は config へ。理由は論点に残す |
 | テスト | 単体で全シナリオ + 総合で経路(主役) | 強さは縛らない。クラッシュ/予算のみ決定的にテスト |
 | 対応コード | src/engine(安定・決定的) | src/agent, src/eval(探索) |
 
 **混ぜない**という原則は変わらない。1つの論点に両方の性質があるなら、決定的な部分と
-非決定的な部分を**別の論点に切り分ける**(切り分け方は @spec-rules.md「何を仕様化するか」)。
+非決定的な部分を**別の論点に切り分ける**(切り分け方は @requirement-rules.md「何を仕様化するか」)。
 
 ## 依存方向(不変条件)
 
@@ -95,7 +95,7 @@ src/engine  ← src/agent  ← src/eval
 
 | 順位 | 層 | 実体 | 食い違ったときの扱い |
 |---|---|---|---|
-| 1 | ドキュメント | `specs/`, `design/`, `decisions/decided/`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
+| 1 | ドキュメント | `requirements/`, `decisions/decided/`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
 | 2 | テスト | `tests/`(単体・総合) | ドキュメントと違えばテストが誤り。仕様に合わせて直す |
 | 3 | ソースコード | `src/`, `scripts/` | テストと違えばコードが誤り。テストに合わせて直す |
 

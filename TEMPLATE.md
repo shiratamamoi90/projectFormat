@@ -29,23 +29,23 @@
    **コピー直後・最初のコミット前に必ず行う。** 除外はこのリネームで初めて効き、
    **機密情報(`.env`)・生成物とキャッシュ・テンプレート同梱物と記入例
    ・手元の作業管理(`work/`)** の4区分が追跡対象から外れる。
-   **議論と決定(`decisions/`)・正本(`specs/` `design/`)・比較基準(`baselines/`)は追跡する**
+   **議論と決定(`decisions/`)・正本(`requirements/`)・比較基準(`baselines/`)は追跡する**
    (区分ごとの中身と理由は `gitignore.template` 自身が正本。ここに一覧を書き写さない)。
    **生成物・キャッシュ(区分2)だけは使用言語で中身が変わるため、既定を置かず全行コメントアウト
    してある。** 言語を決めたら該当行のコメントを外す(言語確定時にまとめて記入する箇所は
    `stack.md`「Stack」の言語/FW に5つまとめてある)。
    続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **git に上げる2つの文書 — `README.md`(使う人向け:導入と使い方)と `DEVELOPMENT.md`(開発する人向け:構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
-3. 記入例(`decisions/*/000*-example-*`・`specs/0001-example-*.md`・`work/0001-example-*`)を
+3. 記入例(`decisions/*/000*-example-*`・`requirements/0001-example-*.md`・`work/0001-example-*`)を
    参考にしたら削除(テンプレは `.claude/rules/` 側にあるので消しても失われない)。
 4. Claude Code を起動。`/new-topic <名前>` で最初の論点を開き、案を出して議論する。
-   決まったら `/decide <論点>` で `specs/` `design/` へ統合する。
+   決まったら `/decide <論点>` で `requirements/` へ統合する。
 5. `/new-work <名前>` で作業単位を切り、`/run-loop <作業名>` で Red→Green→Refactor を回す。
    完了したら `/validate`。
 
 > **コピー先で git に上げる範囲の正本は `gitignore.template`**(手順1で `.gitignore` になる)。
 > テンプレート同梱物(このファイル・CLAUDE.md・`.claude/`・`scripts/` のフック・雛形と記入例)は
-> 追跡せず、`src/` `tests/` `specs/` `design/` `decisions/` `baselines/`・`README.md`・
+> 追跡せず、`src/` `tests/` `requirements/` `decisions/` `baselines/`・`README.md`・
 > `DEVELOPMENT.md` をコミットする(`work/` は手元の作業管理なので追跡しない)。**フォーマットの説明(このファイル)は上げず、作ったシステムの説明
 > (`README.md` / `DEVELOPMENT.md`)を上げる**という切り分け。フォーマット本体のリポジトリだけは
 > 例外で、同梱物ごと管理するため `.gitignore` が空(冒頭「このリポジトリの現在の状態」)。
@@ -74,12 +74,11 @@
 │   │   └── 0002-example-search-depth/
 │   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
 │       └── 0001-example-paralysis/
-├── specs/                          # 統合先:決定済みの仕様書(何を満たすか / Core)
-│   ├── overview.md                 #   確定仕様(決定を統合したものだけ置く。分割は自由)
+├── requirements/                   # 統合先:決定済みの要件(何を満たすか / Core)
+│   ├── overview.md                 #   確定要件(決定を統合したものだけ置く。分割は自由)
 │   ├── 0001-example-status-condition.md  # 記入例:統合された姿
 │   └── glossary.md                 #   用語集:ドメイン語彙の「正」(N-1。validate.sh が参照)
-├── design/                         # 統合先:決定済みの設計書(どう分けて満たすか / Core)
-│   └── overview.md                 #   層の割り当て・契約・境界(分割は自由)
+│                                   #   **どう作るかは書かない — src/ を見れば分かる**
 ├── work/                           # 反映作業の単位。**git 追跡外**(Core)
 │   └── 0001-example-add-paralysis/ #   記入例:tasks / diff
 ├── src/                            # 依存方向 engine←agent←eval(Core/Adapt)

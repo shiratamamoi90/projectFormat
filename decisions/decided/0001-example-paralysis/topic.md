@@ -2,9 +2,9 @@
 
 - **種別: 決定的**(同じ状態 → 同じ合法手。指標で測る要素が無い)
 - **状態: 決定済み**
-- **反映先: `specs/0001-example-status-condition.md`**(シナリオ S0001_01〜05)/ `design/overview.md`「engine の構成」
+- **反映先: `requirements/0001-example-status-condition.md`**(シナリオ S0001_01〜05)
 
-> これは決定済み論点の記入例。書式・番号・承認点の正本は `.claude/rules/design-rules.md`。
+> これは決定済み論点の記入例。書式・番号・承認点の正本は `.claude/rules/decision-rules.md`。
 > 新規プロジェクトでは参考にしたら削除する(TEMPLATE.md 手順3)。
 
 ## 何を決めるか
