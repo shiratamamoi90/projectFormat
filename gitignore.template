@@ -8,7 +8,8 @@
 # 書き写さない(2箇所あると片方が古いまま残る — @.claude/rules/impl-rules.md「共通化」)。
 #
 # 【追跡する = 自分が書いた成果物だけ】
-#   src/  tests/  specs/  changes/NNNN-*/(実作業)  README.md  .gitignore
+#   src/  tests/  specs/  changes/NNNN-*/(実作業)  .gitignore
+#   README.md(使用者向け)  DEVELOPMENT.md(開発者向け)
 #
 # 【除外する = 次の4区分】区分ごとの中身と理由は下の各ブロックに書いてある。
 #   1. 機密情報          漏れると取り返しがつかない(公開後は削除しても回収できない)
@@ -59,7 +60,7 @@ __pycache__/
 # フォーマット自体の説明と、この雛形自身(リネームせずコピーで運用した場合の保険)
 /TEMPLATE.md
 /gitignore.template
-# ↑ README.md は「作ったシステムが何か・どう使うか」を書く紹介用なので**追跡する**。
+# ↑ README.md(使う人向け)と DEVELOPMENT.md(開発する人向け)は**追跡する**。
 #   フォーマットの説明は上げず、作ったシステムの説明を上げる、という切り分け
 
 # 記入例の change(実作業の changes/NNNN-*/ は追跡する)

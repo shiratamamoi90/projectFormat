@@ -26,7 +26,7 @@
    (区分ごとの中身と理由は `gitignore.template` 自身が正本。ここに一覧を書き写さない)。
    **生成物・キャッシュ(区分2)は使用言語で中身が変わる**ので、言語を決めたら区分2を差し替える
    (既定は Python。言語変更時にまとめて直す箇所は `stack.md`「Stack」の言語/FW)。
-   続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **`README.md`(作るシステムの紹介 — clone した人が最初に読むファイル)** を埋める。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
+   続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **git に上げる2つの文書 — `README.md`(使う人向け:導入と使い方)と `DEVELOPMENT.md`(開発する人向け:構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
 3. `changes/0001-example-*` と `experiments/0001-example-*` を参考にしたら削除。
 4. Claude Code を起動。`/new-change <名前>` で最初の変更を作り、spec を自分で書いて承認。
@@ -34,10 +34,10 @@
 
 > **コピー先で git に上げる範囲の正本は `gitignore.template`**(手順1で `.gitignore` になる)。
 > テンプレート同梱物(このファイル・CLAUDE.md・`.claude/`・`scripts/` のフック・雛形と記入例)は
-> 追跡せず、`src/` `tests/` `specs/`・実作業の `changes/NNNN-*/`・`README.md` だけをコミットする。
-> **フォーマットの説明(このファイル)は上げず、作ったシステムの説明(`README.md`)を上げる**という
-> 切り分け。フォーマット本体のリポジトリだけは例外で、同梱物ごと管理するため `.gitignore` が空
-> (冒頭「このリポジトリの現在の状態」)。
+> 追跡せず、`src/` `tests/` `specs/`・実作業の `changes/NNNN-*/`・`README.md`・`DEVELOPMENT.md`
+> だけをコミットする。**フォーマットの説明(このファイル)は上げず、作ったシステムの説明
+> (`README.md` / `DEVELOPMENT.md`)を上げる**という切り分け。フォーマット本体のリポジトリだけは
+> 例外で、同梱物ごと管理するため `.gitignore` が空(冒頭「このリポジトリの現在の状態」)。
 
 ## ディレクトリ構造
 
@@ -48,7 +48,8 @@
 .
 ├── CLAUDE.md                       # エージェントへのルール/制約のみ(薄く保つ・詳細は rules/ を参照 / Core)
 ├── TEMPLATE.md                     # このファイル。フォーマットの説明 + リポジトリの現在の状態の正本(冒頭 / コピー先では git 非追跡)
-├── README.md                       # 作ったシステムの紹介(何か・使い方)。**git に上げる**雛形
+├── README.md                       # **使用者向け**:導入と使い方。開発の話は書かない。**git に上げる**雛形
+├── DEVELOPMENT.md                  # **開発者向け**:構成・テスト・変更の進め方。**git に上げる**雛形
 ├── .gitignore                      # フォーマット本体では**空が正**(同梱物ごと GitHub 管理するため)
 ├── gitignore.template              # コピー先の除外リストの正本。手順1で `.gitignore` にリネームする
 ├── .claude/
