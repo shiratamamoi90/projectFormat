@@ -21,7 +21,9 @@
 - 破壊的・不可逆な操作(`rm -rf`、`git push --force`、本番へのマイグレーション/削除)は人間の承認なしに実行しない。
 - `rm -rf` と `git push --force` は hooks の veto(@architecture.md の「強制」列)で機械的に止める。
   実体は `scripts/hooks.sh veto`、配線は settings.team.json。veto は Scale 層のため、
-  settings.team.json を settings.json にマージして初めて有効になる。
+  settings.team.json を settings.json にマージして初めて有効になる。**マージのしかたは
+  settings.team.json の `_comment` が正本** — `Stop` は両方のファイルにあるので、
+  置き換えると Core の停止時テストが黙って消える。**追記してから両方の発火を確認する。**
 - 本番マイグレーション・削除などプロジェクト固有の危険コマンドは、同じスクリプトの
   `DANGEROUS_PATTERNS` にパターンを追記して止める(方針に書くだけでは強制にならない)。
 - veto を変えたら**必ず発火を確認する**:サンプル入力を流して exit 2 が返ることを見る

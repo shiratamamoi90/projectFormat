@@ -1,18 +1,24 @@
 {
-  "_comment": "Scale層。チーム開発で settings.json にマージして有効化する。処理の実体は scripts/hooks.sh。",
+  "_comment": "Scale層。チーム開発で settings.json にマージして有効化する。処理の実体は scripts/hooks.sh。マージのしかた: PreToolUse はそのまま足す。**Stop は配列に追記する(置き換えない)** — settings.json の Stop には test が入っており、置き換えると Core の強制(停止時のテスト)が黙って消える。マージ後は test と validate の両方が停止時に動くことを必ず確認する。",
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks.sh veto" }
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks.sh veto"
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks.sh validate" }
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks.sh validate"
+          }
         ]
       }
     ]
