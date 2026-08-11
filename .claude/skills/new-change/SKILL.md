@@ -9,13 +9,16 @@ description: 新しい変更フォルダを作り、仕様ループ(仕様→テ
 1. changes/ 内の既存連番を調べ、最大+1 を 4桁ゼロ詰めで NNNN とする(無ければ 0001)。
 2. `changes/NNNN-$ARGUMENTS/` に4ファイルを作る:
    - proposal.md / spec.md … 中身は @.claude/rules/spec-rules.md「確定の流れ」と「spec.md テンプレ」。
-     spec は雛形だけ置く(シナリオの中身は人間が確定)
+     spec は雛形だけ置く(シナリオの中身は人間が確定)。proposal には**設計案の節も雛形として置く**
+     (中身は @.claude/rules/design-rules.md「proposal.md の設計案テンプレ」。**spec 承認前に埋めない** —
+     仕様が決まる前に設計しないため)
    - tasks.md … テスト先行のチェックリスト(下記の形)
    - diff.md … ADDED / MODIFIED / 完了条件
 3. この変更が本当に決定的かを判定して報告する。非決定的な要素が混じっていたら experiments/ 側に分けるよう提案する。
 4. **spec.md のシナリオを人間が承認するまで実装・テストを書かない。** 雛形を用意したら停止し、人間のレビューを促す。
-   承認が出ても、**テストと実装の作成・実行には別途、人間の明確な許可が要る**
-   (@.claude/rules/test-rules.md「着手の許可」)。この skill が作るのは文書だけ。
+   spec が承認されても、**設計案の承認**(@.claude/rules/design-rules.md「承認点」)と、
+   **テストと実装の作成・実行の許可**(@.claude/rules/test-rules.md「着手の許可」)が別に要る。
+   関門は3つあり、この skill が作るのは文書だけ。
 
 tasks.md の形:
 ```markdown

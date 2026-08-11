@@ -11,6 +11,8 @@ description: 仕様ループの1サイクル(Red→Green→Refactor)を回す。
   許可が出れば作成・実行してよい。**この確認はどの場合でも省略しない** — 続きの作業でも、
   バグ修正でも、1シナリオだけでも、毎回取る(@.claude/rules/test-rules.md「着手の許可」)。
 - 対象 change の spec.md が人間に承認済みであること。未承認なら停止して確認を促す。
+- **proposal.md の設計案が人間に承認済みであること**(@.claude/rules/design-rules.md「承認点」)。
+  未記入・未承認なら停止する。spec の承認だけで実装に入らない。
 
 サイクル:
 1. spec の未実装シナリオを1つ選ぶ。

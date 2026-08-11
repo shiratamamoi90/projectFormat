@@ -60,7 +60,9 @@ src/engine  ←  src/agent  ←  src/eval
 決定的(同じ入力 → 同じ出力)か、非決定的(指標でしか測れない)かをまず判定して分ける。
 
 - **決定的** … `changes/NNNN-*/` に proposal と spec を書く → **人間が spec を承認** →
-  失敗するテストを先に書く(Red)→ 最小実装(Green)→ リファクタ → 総合テスト → `specs/` に反映。
+  設計案を proposal に書く → **人間が設計案を承認** → 失敗するテストを先に書く(Red)→
+  最小実装(Green)→ リファクタ → 総合テスト → `specs/` に反映。
+  仕様の承認と設計の承認は別の関門で、両方要る。重い設計判断は `decisions/` に ADR として残す。
 - **非決定的** … `experiments/NNNN-*/` に hypothesis / config / result。1実験 = 1変数のみ変更。
   baseline と比べて測り、シードと依存を固定した結果だけを残す。
 

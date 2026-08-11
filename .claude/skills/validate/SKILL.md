@@ -32,6 +32,9 @@ description: spec とテストの整合を検査する。OpenSpec の validate -
 - `[要確認]` タグが未解決のまま実装に進んでいないか。
 - **ドキュメント同士の食い違い**(正本と写しのずれ):stack.md の Commands ↔ settings.json の
   hooks、TEMPLATE.md のディレクトリ構造 ↔ 実ファイル、CLAUDE.md の参照先 ↔ 実在するファイル。
+- **設計判断が記録されているか**(@.claude/rules/design-rules.md):進行中の change の
+  proposal.md に設計案(採らなかった案とその理由を含む)があるか。ADR を書く条件に該当する
+  判断が、`decisions/` に残らないまま実装されていないか。
 - 仕様に出てくる概念が用語集に登録されているか(未登録の語を使っていないか)。
 - result.md にシードや依存固定の記述なしに数値が書かれていないか。
 

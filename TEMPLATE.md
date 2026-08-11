@@ -35,7 +35,8 @@
    `stack.md`「Stack」の言語/FW に5つまとめてある)。
    続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **git に上げる2つの文書 — `README.md`(使う人向け:導入と使い方)と `DEVELOPMENT.md`(開発する人向け:構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
-3. `changes/0001-example-*` と `experiments/0001-example-*` を参考にしたら削除。
+3. `changes/0001-example-*`・`experiments/0001-example-*`・`decisions/0001-example-*` を
+   参考にしたら削除(3つとも記入例。テンプレは `.claude/rules/` 側にあるので消しても失われない)。
 4. Claude Code を起動。`/new-change <名前>` で最初の変更を作り、spec を自分で書いて承認。
 5. `/run-loop <change名>` で Red→Green→Refactor を回す。完了したら `/validate`。
 
@@ -62,7 +63,7 @@
 ├── .claude/
 │   ├── settings.json               # hooks の配線: format on edit, test on stop(Core)
 │   ├── settings.team.json          # チーム用 hooks の配線: veto, validate(Scale, マージで有効化)
-│   ├── rules/                      # ルールの正本7本(どれを見るかは CLAUDE.md の参照先表 / Core)
+│   ├── rules/                      # ルールの正本8本(どれを見るかは CLAUDE.md の参照先表 / Core)
 │   └── skills/                     # スラッシュコマンド(実行 / Core)
 │                                   #   new-change / new-experiment / run-loop / validate の SKILL.md
 ├── specs/                          # 決定的部分の source of truth(Core)
@@ -80,8 +81,8 @@
 │   ├── engine/                     #   単体:spec の全シナリオ
 │   ├── agent/                      #   単体:スモーク(クラッシュ/予算/再現性)
 │   └── integration/                #   総合:繋いだ経路を最初から最後まで通す
-├── decisions/                      # ADR:判断の記録(Scale)
-│   └── 0001-example-language.md
+├── decisions/                      # ADR:設計判断の記録(書く条件・書式は rules/design-rules.md / Scale)
+│   └── 0001-example-language.md    #   記入例
 ├── scripts/
 │   ├── validate.sh                 # 機械検査(項目の正本は impl-rules.md N-8)。/validate が呼ぶ(Core)
 │   └── hooks.sh                    # hooks の実体。format|test(Core)/ veto|validate(Scale)を引数で切替
