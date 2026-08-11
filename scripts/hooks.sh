@@ -3,7 +3,10 @@
 # 「イベント名 + このスクリプト + 引数」だけを書き、処理はここに置く
 # (JSON 文字列にコマンドを直書きすると引用が壊れ、hook の stdin JSON も扱えない)。
 # 使い方: scripts/hooks.sh <format|test|veto|validate>
-# 実行するコマンドの正本は @.claude/rules/stack.md「Commands」。
+# 実行するコマンドの正本は @.claude/rules/stack.md「Commands」(下の記入スロットに写す)。
+#
+# このスクリプト自体の動作要件は bash と python3(hook の stdin JSON を読むため)で、
+# **対象プロジェクトの実装言語とは無関係**。Go でも Java でも TS でも同じものが動く。
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 0
 
@@ -16,32 +19,58 @@ try: print(json.load(sys.stdin).get("tool_input", {}).get(sys.argv[1], ""))
 except Exception: pass' "$1" 2>/dev/null
 }
 
+# ---------------------------------------------------------------------------
+# 記入スロット:**このフォーマットは対象プロジェクトの言語を限定しない。**
+# 言語が決まったら埋める(TEMPLATE.md「使い方」手順1)。値の正本は
+# @.claude/rules/stack.md「Commands」で、ここはその唯一の写し先。
+#
+# 空のままなら該当 hook は何もせず素通りし、NOTE で未記入を知らせる
+# (黙って素通りすると「強制しているつもりで何も強制していない」状態になるため)。
+TEST_CMD=""             # 例: pytest tests/ -q │ go test ./... │ npm test │ mvn -q test
+FORMAT_CMD=""           # 例: ruff format │ gofmt -w │ npx prettier --write │ rustfmt
+FORMAT_EXTENSIONS=""    # 整形対象の拡張子(空白区切り)。例: py │ go │ ts tsx js │ java rs
+# ---------------------------------------------------------------------------
+
 # プロジェクト固有の危険コマンド(本番マイグレーション・削除など)はここに追記する。
-# 方針(rules)に書くだけでは強制にならない。
+# 方針(rules)に書くだけでは強制にならない。言語に依らず共通。
 DANGEROUS_PATTERNS=('rm -rf' 'git push --force' 'git push -f')
 
 case "${1:-}" in
   format)
     # PostToolUse(Edit|Write): 編集したファイルだけ整形する(Core)。
-    # .py に絞るのは、ruff にドキュメントを渡すと毎回パースエラーになるため。
+    # 拡張子で絞るのは、整形ツールにドキュメント等を渡すと毎回パースエラーになるため。
     path=$(read_tool_input file_path)
     [ -n "$path" ] && [ -f "$path" ] || exit 0
-    case "$path" in
-      *.py) ruff format "$path" >/dev/null 2>&1 \
-              || echo "NOTE: ruff format に失敗($path)。stack.md の環境構築を確認" ;;
-    esac
+    if [ -z "$FORMAT_CMD" ] || [ -z "$FORMAT_EXTENSIONS" ]; then
+      echo "NOTE: FORMAT_CMD / FORMAT_EXTENSIONS が未記入(scripts/hooks.sh 冒頭。stack.md「Commands」を写す)"
+      exit 0
+    fi
+    for ext in $FORMAT_EXTENSIONS; do          # 空白区切りを分割するため意図的に非クォート
+      case "$path" in
+        *."$ext")
+          # $FORMAT_CMD も引数付き(`npx prettier --write` 等)を許すため非クォート。
+          $FORMAT_CMD "$path" >/dev/null 2>&1 \
+            || echo "NOTE: 整形に失敗($path)。stack.md の環境構築を確認"
+          break ;;
+      esac
+    done
     ;;
   test)
     # Stop: 全テストを回して通知する(Core)。落ちてもブロックしないのは Red フェーズ
     # (実装前の意図的な赤)を妨げないため。赤確認の担保は /run-loop が持つ
     # (@.claude/rules/test-rules.md「赤確認の担保は『実行(skill)』」)。
-    out=$(pytest tests/ -q 2>&1); code=$?
+    if [ -z "$TEST_CMD" ]; then
+      echo "NOTE: TEST_CMD が未記入(scripts/hooks.sh 冒頭。stack.md「Commands」を写す)"
+      exit 0
+    fi
+    out=$($TEST_CMD 2>&1); code=$?           # 引数付きコマンドを許すため非クォート
     printf '%s\n' "$out" | tail -5
     case "$code" in
       0) ;;
-      5)   echo "NOTE: テスト未作成(pytest: no tests collected)" ;;
-      127) echo "NOTE: pytest 未インストール(stack.md の環境構築を先に行う)" ;;
-      *)   echo "TESTS FAILING — Red フェーズ(実装前の赤)なら想定どおり。そうでなければ停止前に直すこと" ;;
+      127) echo "NOTE: テストコマンドが見つからない($TEST_CMD)。stack.md の環境構築を先に行う" ;;
+      # 「テストが1件も無い」ときの終了コードはツールごとに違う(pytest は 5、go test は 0)。
+      # 言語を限定しないため個別に分岐せず、まとめてこの1本で知らせる。
+      *)   echo "TESTS FAILING — Red フェーズ(実装前の赤)か、まだテストが無い段階なら想定どおり。そうでなければ停止前に直すこと" ;;
     esac
     ;;
   veto)

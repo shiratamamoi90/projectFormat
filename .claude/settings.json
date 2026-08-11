@@ -2,8 +2,6 @@
   "permissions": {
     "allow": [
       "Read", "Edit", "Write",
-      "Bash(pytest:*)",
-      "Bash(ruff:*)",
       "Bash(scripts/validate.sh)",
       "Bash(./scripts/validate.sh)",
       "Bash(bash scripts/validate.sh)",

@@ -26,26 +26,45 @@
 !.env.example
 
 # --- 2. 生成物・キャッシュ --------------------------------------------------
-# **ここだけは使用言語で中身が変わる。既定は Python。** 言語を決めたら
-# (@.claude/rules/stack.md「Stack」の言語/FW)下の Python ブロックをその言語の
-# 生成物に差し替える。差し替えないと、ビルド成果物や依存ディレクトリが未追跡ファイルとして
-# 毎回出続けるか(ノイズ)、逆に git に上がる(リポジトリの肥大)。代表例:
-#   Python  __pycache__/  *.pyc  .venv/  .pytest_cache/  .ruff_cache/  .mypy_cache/
-#   Node/TS node_modules/  dist/  build/  coverage/  .next/  *.tsbuildinfo
-#   Java    target/  build/  *.class  .gradle/
-#   Go      bin/  vendor/
-#   Rust    target/
+# **ここだけは使用言語で中身が変わる。このフォーマットは言語を限定しないので、既定は無い。**
+# 言語を決めたら(@.claude/rules/stack.md「Stack」の言語/FW)該当行のコメントを外す。
+# 外さないと、ビルド成果物や依存ディレクトリが未追跡ファイルとして毎回出続けるか(ノイズ)、
+# 逆に git に上がる(リポジトリの肥大)。**どれか1つを選ぶ。全部有効にしない。**
 #
-# .pytest_cache / .ruff_cache は**このフォーマットの hooks が作る**(Stop で pytest、
-# PostToolUse で ruff format)。hooks を別言語のコマンドに差し替えたときは、その
-# ツールが作るキャッシュに合わせてここも直す(差し替え箇所の一覧は stack.md 側)。
-__pycache__/
-*.pyc
-.venv/
-.pytest_cache/
-.ruff_cache/
+# hooks(整形・テスト)が作るキャッシュもここに入る。使うツールを決めたときに、その
+# ツールのキャッシュが下の行に含まれているか確かめる(例: .pytest_cache は pytest、
+# .ruff_cache は ruff、coverage/ はカバレッジ計測が作る)。
 
-# 言語に依存しないもの(どの言語でも残す)
+# Python
+#__pycache__/
+#*.pyc
+#.venv/
+#.pytest_cache/
+#.ruff_cache/
+#.mypy_cache/
+
+# Node / TypeScript
+#node_modules/
+#dist/
+#build/
+#coverage/
+#.next/
+#*.tsbuildinfo
+
+# Java
+#target/
+#build/
+#*.class
+#.gradle/
+
+# Go
+#bin/
+#vendor/
+
+# Rust
+#target/
+
+# 言語に依存しないもの(どの言語でも有効のまま残す)
 *.log
 .DS_Store
 
