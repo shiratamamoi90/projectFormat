@@ -11,3 +11,4 @@
 - ファイル分割は自由。機能のまとまりごとに分けてよい(このファイル名も変えてよい)。
 
 記入例は `specs/0001-example-status-condition.md`(参考にしたら削除する)。
+設計側の対になるファイルは `design/overview.md`。

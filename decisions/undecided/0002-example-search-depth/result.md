@@ -1,6 +1,6 @@
 # 結果(計測後に記入)
 
-| 指標 | baseline(depth2) | 本実験(depth4) |
+| 指標 | baseline(depth2) | 案B(depth4) |
 |---|---|---|
 | 勝率 | - | - |
 | 平均思考時間(ms) | - | - |

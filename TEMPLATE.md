@@ -1,7 +1,7 @@
 # プロジェクトテンプレート(仕様ループ + 探索ループ / Claude Code 前提)
 
-決定的な部分は **仕様ループ**(仕様→テスト→実装→テスト)、非決定的な部分は **探索ループ**
-(仮説→設定→計測→考察)で開発する、二系統 × 3レイヤー(Core/Scale/Adapt)の雛形。
+**論点 → 決定 → 統合 → 作業 → テスト・実装**で開発する雛形。決定的な部分は根拠で決め(**仕様ループ**)、
+非決定的な部分は計測で決める(**探索ループ**)。二系統 × 3レイヤー(Core/Scale/Adapt)。
 規律は **方針(CLAUDE.md)/ 実行(skill)/ 強制(hooks)** の3手段で担保する。
 
 ## このリポジトリの現在の状態(初見の人へ)
@@ -75,7 +75,7 @@
 │   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
 │       └── 0001-example-paralysis/
 ├── specs/                          # 統合先:決定済みの仕様書(何を満たすか / Core)
-│   ├── rule-engine.md              #   確定仕様(決定を統合したものだけ置く)
+│   ├── overview.md                 #   確定仕様(決定を統合したものだけ置く。分割は自由)
 │   ├── 0001-example-status-condition.md  # 記入例:統合された姿
 │   └── glossary.md                 #   用語集:ドメイン語彙の「正」(N-1。validate.sh が参照)
 ├── design/                         # 統合先:決定済みの設計書(どう分けて満たすか / Core)
@@ -84,7 +84,7 @@
 │   └── 0001-example-add-paralysis/ #   記入例:tasks / diff
 ├── src/                            # 依存方向 engine←agent←eval(Core/Adapt)
 │   ├── engine/                     #   決定的・安定(仕様ループ対象)
-│   ├── agent/                      #   探索(実験で評価)
+│   ├── agent/                      #   探索(非決定的な論点で計測して決める)
 │   └── eval/                       #   自己対戦・評価
 ├── tests/                          # 単体 + 総合の両方を書く。**この配置は一例。言語慣習に合わせて差し替える**(Core)
 │   ├── engine/                     #   単体:spec の全シナリオ
@@ -93,7 +93,7 @@
 ├── scripts/
 │   ├── validate.sh                 # 機械検査(項目の正本は impl-rules.md N-8)。/validate が呼ぶ(Core)
 │   └── hooks.sh                    # hooks の実体。format|test(Core)/ veto|validate(Scale)を引数で切替
-└── baselines/                      # 実験の比較基準(Adapt / ML系)
+└── baselines/                      # 計測の比較基準(Adapt / ML系)
     └── README.md
 ```
 

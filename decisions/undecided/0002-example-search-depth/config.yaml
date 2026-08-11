@@ -1,4 +1,4 @@
-# 1実験 = 1変数のみ変更
+# 1論点 = 1変数のみ変更(@.claude/rules/experiment-rules.md)
 agent: mcts
 search_depth: 4      # baseline は 2
 seed: 42

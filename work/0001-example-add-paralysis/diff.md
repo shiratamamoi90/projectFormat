@@ -1,6 +1,6 @@
 # 差分 0001: まひ状態(記入例)
 
-反映元:`specs/rule-engine.md`「状態異常」/ `design/overview.md`「engine の構成」
+反映元:`specs/0001-example-status-condition.md` / `design/overview.md`「engine の構成」
 
 ## ADDED
 - src/engine/status.py
