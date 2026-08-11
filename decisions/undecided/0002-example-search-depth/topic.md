@@ -20,7 +20,7 @@ MCTS の探索深さの既定値。深くすると強くなるはずだが、1�
 
 ## 測り方(非決定的な論点なので計測で決める)
 
-- 相手: `baselines/greedy`、200戦、`seed=42` 固定(設定は `config.yaml`)
+- 相手: greedy baseline(`src/agent/` の実装)、200戦、`seed=42` 固定(設定は `config.yaml`)
 - 見る指標: 勝率、1手あたり平均思考時間(ms)
 - **1論点 = 1変数のみ変更**。深さ以外は baseline と同一にする。
 

@@ -1,6 +1,6 @@
 ---
 name: decide
-description: 決まった論点を decisions/undecided/ から decided/ へ移し、その場で requirements/ に統合する。
+description: 決まった論点を decisions/undecided/ から decided/ へ移し、その場で docs/ に統合する。
 ---
 
 引数 $ARGUMENTS で指定された論点(例: 0002-search-depth)を確定させる。
@@ -18,9 +18,9 @@ description: 決まった論点を decisions/undecided/ から decided/ へ移�
 2. フォルダごと `decisions/decided/` へ移す。**フォルダの位置が状態**なので、
    `状態:` の行も決定済みに直す。
 3. **その場で統合する。未統合の decided を残さない。**
-   - **満たすべきこと** → `requirements/` に GIVEN/WHEN/THEN で書く。シナリオ ID の先頭4桁は
+   - **満たすべきこと** → `docs/` に GIVEN/WHEN/THEN で書く。シナリオ ID の先頭4桁は
      **論点番号**(@.claude/rules/impl-rules.md N-2)。正常系・異常系・境界・否定を網羅する
-     (@.claude/rules/requirement-rules.md「必須カバレッジ」)。
+     (@.claude/rules/doc-rules.md「必須カバレッジ」)。
    - **構造の決定(どのファイル・どの層に置くか)は文書に書かない。** 結果はコードに現れ、
      理由は `topic.md` に残る。要件に及ばない論点なら `反映先: —` として統合を終える。
    - **シナリオ本文を `decided/` 側に重複させない。** `topic.md` には反映先だけを記す。

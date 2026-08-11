@@ -17,23 +17,23 @@
 判定した種別は、論点フォルダの `topic.md` 冒頭に**タグとして必ず書く**(書き忘れは `/validate` が NG にする)。
 
 - **決定的**(同じ入力 → 同じ出力)= **仕様ループ**:論点 → 決定 → 仕様/設計 → テスト → 実装 → テスト
-  詳細は @.claude/rules/requirement-rules.md / @.claude/rules/test-rules.md / @.claude/rules/impl-rules.md に従う。
+  詳細は @.claude/rules/doc-rules.md / @.claude/rules/test-rules.md / @.claude/rules/impl-rules.md に従う。
 - **非決定的**(指標で測るしかない)= **探索ループ**:仮説 → 設定 → 計測 → 考察 → 決定
   詳細は @.claude/rules/experiment-rules.md に従う。
 
 どちらも入れ物は同じ `decisions/`(未決定 / 決定済みをフォルダで分ける)。**入れ物が同じでも
 2つのループを混ぜない** — 両方の性質を持つ作業は、決定的な部分と非決定的な部分を別の論点に切り分ける。
-全体の流れ(論点 → 決定 → `requirements/` → `work/` → テスト・実装)は @.claude/rules/architecture.md「決定の流れ」。
+全体の流れ(論点 → 決定 → `docs/` → `work/` → テスト・実装)は @.claude/rules/architecture.md「決定の流れ」。
 
 判定の指針:出力が一意に決まり受け入れ条件を書けるなら決定的。勝率・精度・速度など指標でしか良し悪しを測れないなら非決定的。
-LLM・乱数が**混在**する処理は丸ごとどちらかに入れず境界で分割する(分割基準は @.claude/rules/requirement-rules.md の「何を仕様化するか」)。
+LLM・乱数が**混在**する処理は丸ごとどちらかに入れず境界で分割する(分割基準は @.claude/rules/doc-rules.md の「何を仕様化するか」)。
 
 ## エージェントの制約(Must)
 
 - **テストと実装は、人間の明確な許可が無い限り作成も実行もしない。** 許可が出れば作成・実行してよい。
   **このルールはどの場合でも有効**:仕様ループでも探索ループでも、バグ修正・リファクタ・
   「1行だけ」の修正でも例外を作らない。許可は**作業ごとに取り、前の許可を次の作業に流用しない**。
-  許可が無い間に進めてよいのは、論点(`topic.md`)・要件(`requirements/`)・
+  許可が無い間に進めてよいのは、論点(`topic.md`)・要件(`docs/`)・
   作業計画(`tasks.md` / `diff.md`)といった**文書と提案まで**。
   対象は `src/` と `tests/` の作成・編集と、テスト・評価コマンドの実行。
   迷ったら「これは文書か、それとも動くものか」で判定し、動くものなら止まって許可を求める。
@@ -69,10 +69,10 @@ CLAUDE.md はハードポリシーではない。絶対則は可能な限り hoo
 |---|---|
 | 技術要素・環境・コマンド・「正」の定義 | `.claude/rules/stack.md` |
 | 設計思想・レイヤー(Core/Scale/Adapt)・依存方向の地図 | `.claude/rules/architecture.md` |
-| 仕様(GIVEN/WHEN/THEN・承認点) | `.claude/rules/requirement-rules.md` |
+| 仕様(GIVEN/WHEN/THEN・承認点) | `.claude/rules/doc-rules.md` |
 | 設計(部品の分け方の決め方・承認点) | `.claude/rules/decision-rules.md` |
 | 議論と決定の記録(案・精査・却下理由) | `decisions/undecided/` → `decisions/decided/` |
-| 決定済みの正本 | `requirements/`(何を満たすか。**どう作るかはコードが正本**) |
+| 決定済みの正本 | `docs/`(何を満たすか。**どう作るかはコードが正本**) |
 | 反映作業の単位(git 追跡外) | `work/NNNN-<作業名>/`(tasks / diff) |
 | テスト(テスト先行・回帰) | `.claude/rules/test-rules.md` |
 | 実装・インフラ・**不変条件**・規約(コメント/ハードコード禁止/共通化) | `.claude/rules/impl-rules.md` |

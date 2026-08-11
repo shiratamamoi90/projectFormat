@@ -1,6 +1,6 @@
 # 状態異常(記入例 — 論点 0001 を統合したもの)
 
-> `decisions/decided/0001-example-paralysis/` を `requirements/` に統合した姿の記入例。
+> `decisions/decided/0001-example-paralysis/` を `docs/` に統合した姿の記入例。
 > ファイル名に `-example-` を含むため `scripts/validate.sh` の spec↔test 照合からは除外される。
 > 参考にしたら削除する(TEMPLATE.md 手順3)。
 

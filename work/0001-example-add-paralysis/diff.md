@@ -1,6 +1,6 @@
 # 差分 0001: まひ状態(記入例)
 
-反映元:`requirements/0001-example-status-condition.md`
+反映元:`docs/0001-example-status-condition.md`
 
 ## ADDED
 - src/engine/status.py
@@ -12,5 +12,5 @@
 
 ## 完了条件
 - [ ] tasks.md のチェックリストが全て埋まっている(ここに再掲しない)
-- [ ] `requirements/` のシナリオ ID がすべて `tests/` と対応している(`scripts/validate.sh`)
+- [ ] `docs/` のシナリオ ID がすべて `tests/` と対応している(`scripts/validate.sh`)
 - [ ] baseline 対戦が壊れていないことを eval で確認

@@ -4,20 +4,20 @@
 # 依存: bash(comm のプロセス置換)/ python3(spec・用語集の解析)。sh では動かない。
 #
 # なぜ cd するか:hook・CI・任意の cwd から呼ばれても同じ結果にするため
-# (相対パスのまま呼ばれると requirements/ が見つからず「NG が無い」と誤報告する)。
+# (相対パスのまま呼ばれると docs/ が見つからず「NG が無い」と誤報告する)。
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
-GLOSSARY="requirements/glossary.md"
+GLOSSARY="docs/glossary.md"
 # 検査対象のパス。**言語慣習に合わせてテストの置き場を変えたらここだけ直す**
 # (Go は実装と同居、Java は src/test/java など。@.claude/rules/test-rules.md
 # 「単体テストと総合テスト」の置き場)。下の3つの grep が共有するので、直書きすると
 # 1箇所直し忘れて「テストを探せないまま OK」になる(@.claude/rules/impl-rules.md「ハードコード禁止」)。
 SRC_DIRS=(src)
 TEST_DIRS=(tests)
-# 決定済みの正本と、議論の記録。要件シナリオは REQUIREMENT_DIRS にだけ書く
-# (decisions 側に重複させない — @.claude/rules/requirement-rules.md「確定の流れ」)。
-REQUIREMENT_DIRS=(requirements)
+# 決定済みの正本と、議論の記録。要件シナリオは DOC_DIRS にだけ書く
+# (decisions 側に重複させない — @.claude/rules/doc-rules.md「確定の流れ」)。
+DOC_DIRS=(requirements)
 DECISION_DIR="decisions"
 SCENARIO_ID='S[0-9]{4}_[0-9]{2}'
 EXAMPLE_MARK='-example-'   # 記入例(TEMPLATE.md「このリポジトリの現在の状態」)。実作業ではない
@@ -48,7 +48,7 @@ pick() { printf '%s\n' "${2:-}" | awk -F'\t' -v tag="$1" '$1 == tag { sub(/^[^\t
 #
 # 対象ファイルは引数で渡す(パイプ + xargs にすると heredoc と stdin を取り合い、
 # python がプログラムを読めずに黙って何も検査しなくなる)。
-mapfile -t spec_docs < <(find "${REQUIREMENT_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
+mapfile -t spec_docs < <(find "${DOC_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
 spec_out=""
 if [ "${#spec_docs[@]}" -gt 0 ]; then
   spec_out=$(python3 - "${spec_docs[@]}" <<'PY'
@@ -242,7 +242,7 @@ for state in ('undecided', 'decided'):
         elif kind.group(1) == '決定的' and os.path.isfile(os.path.join(folder, MEASURE_FILE)):
             # 決定的な論点に計測ファイルがある = 2つのループを混ぜた合図。
             print(f"TAG\t{topic} は種別が決定的なのに {MEASURE_FILE} が同居している")
-        # 決定済みは反映先が書かれていないと、決めたまま requirements/ に反映し忘れる。
+        # 決定済みは反映先が書かれていないと、決めたまま docs/ に反映し忘れる。
         if state == 'decided' and not LINK.search(text):
             print(f"LINK\t{topic} に `反映先:` が無い(未統合の疑い)")
 PY

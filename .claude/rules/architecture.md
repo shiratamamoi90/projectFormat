@@ -8,7 +8,7 @@
 |---|---|---|
 | **Core** | 常時(個人開発から) | 二系統原則、基本 skill、format+test フック |
 | **Scale** | 規模が上がったら足す | 危険操作veto、CI連携、sub-agent 並列化 |
-| **Adapt** | プロジェクト種別で差替 | 「正」の定義、ドメイン別 skill、`baselines/` や `migrations/` 等 |
+| **Adapt** | プロジェクト種別で差替 | 「正」の定義、ドメイン別 skill、`migrations/` や `fixtures/` 等 |
 
 ## 実装手段(横):担保の強さ
 
@@ -38,7 +38,7 @@
 - Scale・強制のうち veto と validate → 配線は `.claude/settings.team.json`(settings.json にマージで
   有効化)、実体は `scripts/hooks.sh veto` / `scripts/hooks.sh validate`
 - Scale・実行の /eval /team-onboarding、Scale・強制の時間予算・CI → **未収録**。規模が上がった時に追加する。
-- Adapt 行 → 種別確定後に追加する(下の「種別ごとの Adapt」)。テンプレートには baselines/ の雛形のみ収録。
+- Adapt 行 → 種別確定後に追加する(下の「種別ごとの Adapt」)。テンプレートには**未収録**。
 
 ## 決定の流れ(全体像)
 
@@ -47,7 +47,7 @@ decisions/undecided/NNNN-<論点>/     案を出し、精査し、議論する
         ↓ 決まったら フォルダごと移す
 decisions/decided/NNNN-<論点>/       決定 + 理由 + 却下案 + 反映先
         ↓ その場で統合する(未統合の decided を残さない)
-requirements/                        何を満たすか(← 正本。どう作るかはコードが正本)
+docs/                        何を満たすか(← 正本。どう作るかはコードが正本)
         ↓ 正本をもとに作業単位を切る
 work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
         ↓
@@ -68,12 +68,12 @@ work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
 | 単位フォルダ | `decisions/{undecided,decided}/NNNN-xxx/`(**共通**) | 同左 |
 | 種別の表し方 | `topic.md` 冒頭に「種別: 決定的」 | 「種別: 非決定的」 |
 | 決め方 | 案を並べて比較し、根拠で決める | **計測で決める**(`config.yaml` / `result.md` を同居させる) |
-| 統合先 | `requirements/` に要件として | 決めた値は config へ。理由は論点に残す |
+| 統合先 | `docs/` に要件として | 決めた値は config へ。理由は論点に残す |
 | テスト | 単体で全シナリオ + 総合で経路(主役) | 強さは縛らない。クラッシュ/予算のみ決定的にテスト |
 | 対応コード | src/engine(安定・決定的) | src/agent, src/eval(探索) |
 
 **混ぜない**という原則は変わらない。1つの論点に両方の性質があるなら、決定的な部分と
-非決定的な部分を**別の論点に切り分ける**(切り分け方は @requirement-rules.md「何を仕様化するか」)。
+非決定的な部分を**別の論点に切り分ける**(切り分け方は @doc-rules.md「何を仕様化するか」)。
 
 ## 依存方向(不変条件)
 
@@ -95,7 +95,7 @@ src/engine  ← src/agent  ← src/eval
 
 | 順位 | 層 | 実体 | 食い違ったときの扱い |
 |---|---|---|---|
-| 1 | ドキュメント | `requirements/`, `decisions/decided/`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
+| 1 | ドキュメント | `docs/`, `decisions/decided/`, `.claude/rules/`, 「正」(@stack.md) | これが正。直すのは人間の承認を経たときだけ |
 | 2 | テスト | `tests/`(単体・総合) | ドキュメントと違えばテストが誤り。仕様に合わせて直す |
 | 3 | ソースコード | `src/`, `scripts/` | テストと違えばコードが誤り。テストに合わせて直す |
 
@@ -114,7 +114,7 @@ src/engine  ← src/agent  ← src/eval
 | Web/業務アプリ | 要件定義 | 主役 | ほぼ無し | migrations/ |
 | CLI/ツール | コマンド仕様 | 主役 | 無し | fixtures/ |
 | ライブラリ | 公開API契約 | 主役 | 無し | 後方互換テスト |
-| MLコンペ | 評価指標+ルール | engine部のみ | 主役 | baselines/, eval/ |
+| MLコンペ | 評価指標+ルール | engine部のみ | 主役 | baseline 実装, eval/ |
 | 研究/PoC | 検証仮説 | 補助 | 主役 | data versioning |
 
 種別が変わったら Adapt 行だけ差し替える。Core/Scale は不変。
