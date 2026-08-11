@@ -40,6 +40,17 @@
 | 速さ | 速い。Red→Green のサイクルで毎回回す | 遅くてよい。change を閉じる前に回す |
 | 落ちた意味 | その部品が仕様と違う | 部品は正しいが繋ぎ方・前提が違う |
 
+**置き場のパスは既定であって、言語慣習に合わせて差し替えてよい。** `tests/engine/` 等は
+Python を既定にした形で、Go は実装と同居する `foo_test.go`、Java は `src/test/java/...` が標準。
+差し替えるときは**次の3つを崩さない**(崩すと表の左右が混ざるか、機械検査が素通りする)。
+
+1. **単体と総合を別の場所に分ける。** 速さと落ちた意味が違うため、まとめて回す単位を分離できなくなる。
+2. **単体は engine / agent の別を保つ**(全シナリオ側とスモーク側)。
+3. **パスを指す4箇所を同時に直す** — @stack.md「Commands」・`scripts/hooks.sh`・
+   `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・TEMPLATE.md のツリー。
+   1つでも残すと、テストを探せないまま「NG が無い」と誤報告する
+   (差し替え箇所の一覧は @stack.md「Stack」の言語/FW)。
+
 ### 単体テスト
 
 - spec の各シナリオに1対1(上の「対応関係」に従う)。境界・異常系を網羅する。
@@ -63,6 +74,11 @@
 - 単体で再現するなら単体に、結合部でしか再現しないなら総合に置く(バグの居場所と同じ層に置く)。
 
 ## 例(実装より先に書く)
+
+**例は Python 記法で書いてあるが、フォーマットは言語を限定しない。** 他の言語では記法だけ
+置き換える(対応は @impl-rules.md N-2 と @stack.md「命名の記法」)。**置き換えても崩さないのは
+次の3つ** — シナリオ ID を一字も改変せず関数名に含める / 1シナリオ = 1テスト関数 /
+GIVEN・WHEN・THEN の3段で書き、総合テストには ID を付けない。
 
 単体(`tests/engine/test_paralysis.py`)— spec の1シナリオ = 1メソッド:
 
@@ -89,3 +105,27 @@ def test_paralysis_flow_through_one_turn():   # 総合テストに ID は付け�
     state = engine.apply_turn_end(state)
     assert engine.get_legal_actions(state)                # 回復し行動可能に戻る
 ```
+
+同じ S0001_02 を他の言語で書いた場合。**変わるのは記法だけで、上の3つは同じ**:
+
+```java
+// src/test/java/engine/ParalysisTest.java — Java の標準配置に合わせて置き場を変えた場合
+@Test
+void S0001_02_paralyzedActorCannotAttack() {
+    BattleState state = makeBattleState(Status.PARALYZED);        // GIVEN
+    List<Action> actions = Engine.getLegalActions(state);         // WHEN
+    assertTrue(actions.stream().noneMatch(Action::isAttack));     // THEN
+}
+```
+
+```typescript
+// tests/engine/paralysis.test.ts
+it('S0001_02 paralyzed actor cannot attack', () => {
+  const state = makeBattleState({ activeStatus: 'paralyzed' });   // GIVEN
+  const actions = engine.getLegalActions(state);                  // WHEN
+  expect(actions.some((a) => a.kind === 'attack')).toBe(false);   // THEN
+});
+```
+
+`S0001_02` の綴りが3言語で一字も変わらない点に注意する。ここが崩れると `scripts/validate.sh` の
+spec ↔ test 照合が言語依存になり、機械検査が成立しない(理由は @impl-rules.md N-2)。

@@ -9,6 +9,12 @@ set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 GLOSSARY="specs/glossary.md"
+# 検査対象のパス。**言語慣習に合わせてテストの置き場を変えたらここだけ直す**
+# (Go は実装と同居、Java は src/test/java など。@.claude/rules/test-rules.md
+# 「単体テストと総合テスト」の置き場)。下の3つの grep が共有するので、直書きすると
+# 1箇所直し忘れて「テストを探せないまま OK」になる(@.claude/rules/impl-rules.md「ハードコード禁止」)。
+SRC_DIRS=(src)
+TEST_DIRS=(tests)
 SCENARIO_ID='S[0-9]{4}_[0-9]{2}'
 EXAMPLE_MARK='-example-'   # 記入例(TEMPLATE.md「このリポジトリの現在の状態」)。実作業ではない
 MAX_SHOW=10
@@ -161,7 +167,7 @@ fi
 section "用語の揺れ(N-1)"
 hits=""
 for word in $banned; do
-  hit=$(grep -rnw -- "$word" src tests 2>/dev/null)
+  hit=$(grep -rnw -- "$word" "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" 2>/dev/null)
   [ -n "$hit" ] && hits="${hits}${hit}"$'\n'
 done
 hits=$(nonempty "$hits")
@@ -173,7 +179,7 @@ fi
 
 # ---------------------------------------------------------------------------
 section "spec ↔ test のシナリオ ID 照合(N-2)"
-test_id_hits=$(grep -rhoE "$SCENARIO_ID" tests 2>/dev/null || true)   # 下の重複検査も使う
+test_id_hits=$(grep -rhoE "$SCENARIO_ID" "${TEST_DIRS[@]}" 2>/dev/null || true)   # 下の重複検査も使う
 spec_ids=$(printf '%s\n' "$spec_id_hits" | sort -u)
 test_ids=$(nonempty "$test_id_hits" | sort -u)
 missing=$(comm -23 <(nonempty "$spec_ids") <(nonempty "$test_ids"))
@@ -197,7 +203,7 @@ fi
 # ---------------------------------------------------------------------------
 section "否定形ブール(N-4)"
 # `is_not_x` / `shouldNotX` / `not` で終わる `should_not` まで拾う。
-neg=$(grep -rnE '\b(is|has|can|should)(_not_|_not\b|Not[A-Z])' src tests 2>/dev/null)
+neg=$(grep -rnE '\b(is|has|can|should)(_not_|_not\b|Not[A-Z])' "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" 2>/dev/null)
 if [ -n "$neg" ]; then
   report_ng "否定形のブール名がある(肯定形を定義し呼び出し側で否定する)" "$neg"
 else
