@@ -59,6 +59,11 @@ case "${1:-}" in
     # Stop: 全テストを回して通知する(Core)。落ちてもブロックしないのは Red フェーズ
     # (実装前の意図的な赤)を妨げないため。赤確認の担保は /run-loop が持つ
     # (@.claude/rules/test-rules.md「赤確認の担保は『実行(skill)』」)。
+    #
+    # これは**人間が TEST_CMD を記入して有効化した機械実行**であって、
+    # 「エージェントが自分でテストを実行してよい」という意味ではない
+    # (@.claude/rules/test-rules.md「着手の許可」)。エージェント側の実行には都度の許可が要る。
+    # 自動実行そのものを止めたいときは TEST_CMD を空に戻す(空なら NOTE だけ出して何もしない)。
     if [ -z "$TEST_CMD" ]; then
       echo "NOTE: TEST_CMD が未記入(scripts/hooks.sh 冒頭。stack.md「Commands」を写す)"
       exit 0
