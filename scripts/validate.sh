@@ -251,7 +251,23 @@ topic_out=$(python3 - "$DECISION_DIR" <<'PY'
 import os, re, sys
 
 root = sys.argv[1]
-KIND = re.compile(r'種別:\s*(決定的|非決定的)')
+# タグ行を1行だけ取り出し、選択肢が**1つに絞られているか**を見る。
+# `種別: 決定的 / 非決定的` のようにテンプレの選択肢が残った状態を「記入済み」と
+# 扱ってはいけない(雛形のまま素通りする)。`非決定的` は `決定的` を部分文字列に含むので、
+# 数えるときは長い方を先に並べた交替で拾う。
+KIND_LINE = re.compile(r'^.*種別:.*$', re.M)
+KIND_WORDS = re.compile(r'非決定的|決定的')
+STATE_LINE = re.compile(r'^.*状態:.*$', re.M)
+STATE_WORDS = re.compile(r'未決定|決定済み')
+STATE_FOR = {'undecided': '未決定', 'decided': '決定済み'}
+
+def sole(line_re, word_re, text):
+    """タグ行から選択肢を1つだけ読む。行が無い / 2つ以上並ぶなら None。"""
+    line = line_re.search(text)
+    if not line:
+        return None
+    found = word_re.findall(line.group(0))
+    return found[0] if len(found) == 1 else None
 LINK = re.compile(r'反映先')
 PATH_IN_LINK = re.compile(r'`([A-Za-z0-9_./-]+\.[A-Za-z0-9]+)`')   # `docs/foo.md` の形だけ拾う
 MEASURE_FILE = 'result.md'
@@ -269,16 +285,23 @@ for state in ('undecided', 'decided'):
             print(f"TAG\t{folder} に topic.md が無い")
             continue
         text = open(topic, encoding='utf-8').read()
-        kind = KIND.search(text)
+        kind = sole(KIND_LINE, KIND_WORDS, text)
         if not kind:
-            print(f"TAG\t{topic} に `種別: 決定的 / 非決定的` が無い")
-        elif kind.group(1) == '決定的' and os.path.isfile(os.path.join(folder, MEASURE_FILE)):
+            print(f"TAG\t{topic} の `種別:` が決定的 / 非決定的のどちらか1つに絞られていない(雛形のまま)")
+        elif kind == '決定的' and os.path.isfile(os.path.join(folder, MEASURE_FILE)):
             # 決定的な論点に計測ファイルがある = 2つのループを混ぜた合図。
             print(f"TAG\t{topic} は種別が決定的なのに {MEASURE_FILE} が同居している")
-        elif (kind.group(1) == '非決定的' and state == 'decided'
+        elif (kind == '非決定的' and state == 'decided'
               and not os.path.isfile(os.path.join(folder, MEASURE_FILE))):
             # 非決定的な論点は計測で決める。実測値なしで決定済みにしたら根拠が無い。
             print(f"TAG\t{topic} は種別が非決定的なのに {MEASURE_FILE} が無い(計測せずに決めている)")
+        # 状態はフォルダの位置が正。書いてある状態がずれていたら、移動時の直し忘れか
+        # 雛形のまま(@.claude/rules/doc-rules.md「確定の流れ」)。
+        written_state = sole(STATE_LINE, STATE_WORDS, text)
+        if written_state is None:
+            print(f"TAG\t{topic} の `状態:` が未決定 / 決定済みのどちらか1つに絞られていない(雛形のまま)")
+        elif written_state != STATE_FOR[state]:
+            print(f"TAG\t{topic} は {state}/ にあるのに `状態: {written_state}` と書かれている")
         if state != 'decided':
             continue
         # 決定済みは反映先が書かれていないと、決めたまま docs/ に反映し忘れる。

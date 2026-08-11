@@ -14,8 +14,8 @@ description: 新しい論点フォルダを decisions/undecided/ に作り、案
    (混ぜない。@.claude/rules/architecture.md「二系統の対応表」)。
 3. `decisions/undecided/NNNN-$ARGUMENTS/topic.md` を作る。書式は
    @.claude/rules/doc-rules.md「topic.md テンプレ」(切り方と粒度は
-   @.claude/rules/decision-rules.md)。**冒頭の種別タグを必ず埋める**
-   (/validate が欠落を NG にする)。
+   @.claude/rules/decision-rules.md)。**冒頭の `種別:` と `状態:` を1つに絞る**
+   (`決定的 / 非決定的` と並べた雛形のままにしない。/validate が NG にする)。
 4. **非決定的と判定した場合のみ** `config.yaml` と `result.md` を追加し、`topic.md` に
    「測り方」と「中止条件」を書く(@.claude/rules/experiment-rules.md)。
    baseline が無ければ、先に baseline を作るよう促す。
