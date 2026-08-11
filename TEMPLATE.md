@@ -81,13 +81,12 @@
 │                                   #   **どう作るかは書かない — src/ を見れば分かる**
 ├── work/                           # 反映作業の単位。**git 追跡外**(Core)
 │   └── 0001-example-add-paralysis/ #   記入例:tasks / diff
-├── src/                            # 依存方向 engine←agent←eval(Core/Adapt)
-│   ├── engine/                     #   決定的・安定(仕様ループ対象)
-│   ├── agent/                      #   探索(非決定的な論点で計測して決める)
-│   └── eval/                       #   自己対戦・評価
+├── src/                            # 依存方向 core←app(Core/Adapt)
+│   ├── core/                      #   決定的・安定。純関数中心(仕様ループ対象)
+│   └── app/                       #   それを使う側。I/O・UI・探索・評価など種別で中身が変わる
 ├── tests/                          # 単体 + 総合の両方を書く。**この配置は一例。言語慣習に合わせて差し替える**(Core)
-│   ├── engine/                     #   単体:spec の全シナリオ
-│   ├── agent/                      #   単体:スモーク(クラッシュ/予算/再現性)
+│   ├── core/                      #   単体:docs の全シナリオ
+│   ├── app/                       #   単体:スモーク(クラッシュ/予算/再現性)
 │   └── integration/                #   総合:繋いだ経路を最初から最後まで通す
 └── scripts/
     ├── validate.sh                 # 機械検査(項目の正本は impl-rules.md N-8)。/validate が呼ぶ(Core)
@@ -97,7 +96,7 @@
 ## 規模に応じた拡張
 
 - **個人**: Core のみ。非決定的な論点が無いなら `config.yaml` / `result.md` は使わなくてよい。
-- **コンペ**: + Adapt(`src/eval/` と、比較基準になる baseline の実装)。
+- **コンペ**: + Adapt(`src/app/` と、比較基準になる baseline の実装)。
 - **チーム**: + Scale(settings.team.json を settings.json にマージ・CI から validate)。
   `decisions/` は既定で追跡されるので、議論と決定はそのまま共有される。
   追跡範囲の正本は `gitignore.template`(上の「使い方」の注記)。

@@ -32,16 +32,16 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 ## ディレクトリと依存方向
 
 ```
-src/engine  ←  src/agent  ←  src/eval
+src/core  ←  src/app  ←  src/app
 (決定的・安定)    (探索)        (評価)
 ```
 
-- `src/engine/` … 決定的なコアロジック。副作用を持たせない。`<このプロジェクトでの中身>`
-- `src/agent/` … `<役割>`
-- `src/eval/` … `<役割>`
-- **矢印の向きにしか依存してよい。** engine は agent / eval を import しない。
+- `src/core/` … 決定的なコアロジック。副作用を持たせない。`<このプロジェクトでの中身>`
+- `src/app/` … `<役割>`
+- `src/app/` … `<役割>`
+- **矢印の向きにしか依存してよい。** core は app を import しない。
   逆向きを作ると、テスト容易性と再現性が同時に壊れる。
-- `tests/engine/` `tests/agent/` … 単体。`tests/integration/` … 総合。
+- `tests/core/` `tests/app/` … 単体。`tests/integration/` … 総合。
 
 ## 仕様の正本
 

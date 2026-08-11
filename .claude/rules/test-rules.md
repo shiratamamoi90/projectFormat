@@ -43,7 +43,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 
 ## 何をテストするか / しないか
 
-- **する(肯定側)**:engine の全シナリオ、状態遷移、境界、エラー処理、勝敗/判定 —
+- **する(肯定側)**:core の全シナリオ、状態遷移、境界、エラー処理、勝敗/判定 —
   **その機能が満たすべき動作を満たしていること**。
 - **する(否定側)**:**その機能が「してはいけない動作」をしていないこと。**
   禁止された操作・遷移が起きない / 対象外に波及しない / 意図しない副作用が無い
@@ -61,7 +61,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 
 | | 単体テスト | 総合テスト |
 |---|---|---|
-| 置き場 | `tests/engine/`(全シナリオ)、`tests/agent/`(スモーク) | `tests/integration/` |
+| 置き場 | `tests/core/`(全シナリオ)、`tests/app/`(スモーク) | `tests/integration/` |
 | 単位 | spec の1シナリオ = 1メソッド | spec の1要件(見出し)= 1経路 |
 | 範囲 | 1関数・1状態遷移。外部 I/O を含めない | 複数コンポーネントの結合。実際の入出力・設定読み込みを通す |
 | 速さ | 速い。Red→Green のサイクルで毎回回す | 遅くてよい。change を閉じる前に回す |
@@ -72,7 +72,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 差し替えるときは**次の3つを崩さない**(崩すと表の左右が混ざるか、機械検査が素通りする)。
 
 1. **単体と総合を別の場所に分ける。** 速さと落ちた意味が違うため、まとめて回す単位を分離できなくなる。
-2. **単体は engine / agent の別を保つ**(全シナリオ側とスモーク側)。
+2. **単体は core / app の別を保つ**(全シナリオ側とスモーク側)。
 3. **パスを指す4箇所を同時に直す** — @stack.md「Commands」・`scripts/hooks.sh`・
    `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・TEMPLATE.md のツリー。
    1つでも残すと、テストを探せないまま「NG が無い」と誤報告する
@@ -81,7 +81,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 ### 単体テスト
 
 - spec の各シナリオに1対1(上の「対応関係」に従う)。境界・異常系・**否定側**を網羅する。
-- engine は副作用を閉じ込めた純粋関数なので、状態を組み立てて `apply(state, action)` を直接呼ぶ。
+- core は副作用を閉じ込めた純粋関数なので、状態を組み立てて `apply(state, action)` を直接呼ぶ。
 - **副作用が無いことは「呼び出しの前後で入力が等しい」ことを検証して確かめる。** 戻り値だけを
   見ていると、引数を書き換える実装(N-3 違反)がテストを素通りする。
 - 外部依存(ファイル・ネットワーク・時刻・乱数)は引数か fake で渡す。実物を呼ばない。
@@ -90,7 +90,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 
 - **代表的な正常系を最初から最後まで通す経路を必ず1本用意する**(例:初期状態から決着まで1試合、
   入力ファイルを読んで出力を書くまで)。これが赤のまま change を閉じない。
-- 縛るのは**結合部の前提**:依存方向(engine←agent←eval)を通した呼び出し、設定・シードの読み込み、
+- 縛るのは**結合部の前提**:依存方向(core←app)を通した呼び出し、設定・シードの読み込み、
   エラーの伝播、外部入力の検証(@security-rules.md「入力と信頼境界」)。
 - 非決定的要素は**シードを固定して決定的にする**。固定できないもの(実ネットワーク等)は fake に
   置き換える。再現できない総合テストは残さない(@impl-rules.md「不変条件」)。
@@ -109,18 +109,18 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 次の3つ** — シナリオ ID を一字も改変せず関数名に含める / 1シナリオ = 1テスト関数 /
 GIVEN・WHEN・THEN の3段で書き、総合テストには ID を付けない。
 
-単体(`tests/engine/test_paralysis.py`)— spec の1シナリオ = 1メソッド:
+単体(`tests/core/test_paralysis.py`)— spec の1シナリオ = 1メソッド:
 
 ```python
 class TestParalysis:
     def test_S0001_02_paralyzed_actor_cannot_attack(self):
         state = make_battle_state(active_status="paralyzed")  # GIVEN
-        actions = engine.get_legal_actions(state)             # WHEN
+        actions = core.get_legal_actions(state)             # WHEN
         assert not any(a.kind == "attack" for a in actions)   # THEN
 
     def test_S0001_03_paralysis_is_cleared_at_turn_end(self):
         state = make_battle_state(active_status="paralyzed")
-        assert engine.apply_turn_end(state).active_status is None
+        assert core.apply_turn_end(state).active_status is None
 ```
 
 総合(`tests/integration/test_paralysis_flow.py`)— 付与から回復までを1経路で通す:
@@ -129,16 +129,16 @@ class TestParalysis:
 def test_paralysis_flow_through_one_turn():   # 総合テストに ID は付けない(N-2)
     # 単体で縛った分岐は再検査しない。結合して経路が通ることだけを見る。
     state = build_battle_state(seed=42)                   # シード固定 = 再現可能
-    state = engine.apply_status_condition(state, PARALYSIS)
-    assert not any(a.kind == "attack" for a in engine.get_legal_actions(state))
-    state = engine.apply_turn_end(state)
-    assert engine.get_legal_actions(state)                # 回復し行動可能に戻る
+    state = core.apply_status_condition(state, PARALYSIS)
+    assert not any(a.kind == "attack" for a in core.get_legal_actions(state))
+    state = core.apply_turn_end(state)
+    assert core.get_legal_actions(state)                # 回復し行動可能に戻る
 ```
 
 同じ S0001_02 を他の言語で書いた場合。**変わるのは記法だけで、上の3つは同じ**:
 
 ```java
-// src/test/java/engine/ParalysisTest.java — Java の標準配置に合わせて置き場を変えた場合
+// src/test/java/core/ParalysisTest.java — Java の標準配置に合わせて置き場を変えた場合
 @Test
 void S0001_02_paralyzedActorCannotAttack() {
     BattleState state = makeBattleState(Status.PARALYZED);        // GIVEN
@@ -148,10 +148,10 @@ void S0001_02_paralyzedActorCannotAttack() {
 ```
 
 ```typescript
-// tests/engine/paralysis.test.ts
+// tests/core/paralysis.test.ts
 it('S0001_02 paralyzed actor cannot attack', () => {
   const state = makeBattleState({ activeStatus: 'paralyzed' });   // GIVEN
-  const actions = engine.getLegalActions(state);                  // WHEN
+  const actions = core.getLegalActions(state);                  // WHEN
   expect(actions.some((a) => a.kind === 'attack')).toBe(false);   // THEN
 });
 ```

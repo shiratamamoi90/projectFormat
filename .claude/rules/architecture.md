@@ -26,7 +26,7 @@
 | | 方針 | 実行 | 強制 |
 |---|---|---|---|
 | **Core** | 二系統原則・Don't | /new-topic, /decide, /new-work, /validate, /run-loop | format on edit, test on stop |
-| **Scale** | チーム規約・ロール | /eval, /team-onboarding | 危険操作veto, 時間予算, CI |
+| **Scale** | チーム規約・ロール | /measure, /team-onboarding | 危険操作veto, 時間予算, CI |
 | **Adapt** | 「正」の定義・不変条件 | ドメイン別コマンド | ドメイン別検査 |
 
 各セルは独立。1セルの変更が他に波及しない。
@@ -37,7 +37,7 @@
   実体は `scripts/hooks.sh format` / `scripts/hooks.sh test`
 - Scale・強制のうち veto と validate → 配線は `.claude/settings.team.json`(settings.json にマージで
   有効化)、実体は `scripts/hooks.sh veto` / `scripts/hooks.sh validate`
-- Scale・実行の /eval /team-onboarding、Scale・強制の時間予算・CI → **未収録**。規模が上がった時に追加する。
+- Scale・実行の /measure /team-onboarding、Scale・強制の時間予算・CI → **未収録**。規模が上がった時に追加する。
 - Adapt 行 → 種別確定後に追加する(下の「種別ごとの Adapt」)。テンプレートには**未収録**。
 
 ## 決定の流れ(全体像)
@@ -70,7 +70,7 @@ work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
 | 決め方 | 案を並べて比較し、根拠で決める | **計測で決める**(`config.yaml` / `result.md` を同居させる) |
 | 統合先 | `docs/` に要件として | 決めた値は config へ。理由は論点に残す |
 | テスト | 単体で全シナリオ + 総合で経路(主役) | 強さは縛らない。クラッシュ/予算のみ決定的にテスト |
-| 対応コード | src/engine(安定・決定的) | src/agent, src/eval(探索) |
+| 対応コード | src/core(安定・決定的) | src/app, src/app(探索) |
 
 **混ぜない**という原則は変わらない。1つの論点に両方の性質があるなら、決定的な部分と
 非決定的な部分を**別の論点に切り分ける**(切り分け方は @doc-rules.md「何を仕様化するか」)。
@@ -78,10 +78,11 @@ work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
 ## 依存方向(不変条件)
 
 ```
-src/engine  ← src/agent  ← src/eval
-(決定的・安定)   (探索)       (評価)
+src/core          ←          src/app
+(決定的・安定。純関数中心)      (それを使う側。I/O・UI・探索・評価など)
 ```
-矢印の向きにのみ依存してよい。この図は地図で、規範と崩したときに何が壊れるかは
+矢印の向きにのみ依存してよい。**層は2つで固定**し、app 側をさらに分けるかは種別次第
+(下の「種別ごとの Adapt」)。この図は地図で、規範と崩したときに何が壊れるかは
 @impl-rules.md「不変条件」が正本。
 
 ## 整合性の優先順位(不変条件)
@@ -114,7 +115,23 @@ src/engine  ← src/agent  ← src/eval
 | Web/業務アプリ | 要件定義 | 主役 | ほぼ無し | migrations/ |
 | CLI/ツール | コマンド仕様 | 主役 | 無し | fixtures/ |
 | ライブラリ | 公開API契約 | 主役 | 無し | 後方互換テスト |
-| MLコンペ | 評価指標+ルール | engine部のみ | 主役 | baseline 実装, eval/ |
+| MLコンペ | 評価指標+ルール | core部のみ | 主役 | baseline 実装 |
 | 研究/PoC | 検証仮説 | 補助 | 主役 | data versioning |
+
+### 層の中身も種別で変わる(境界は変えない)
+
+`core` と `app` の**2層と依存の向きは不変**。**何を入れるかだけ**が種別で変わる。
+
+| 種別 | `src/core`(決定的) | `src/app`(それを使う側) |
+|---|---|---|
+| Web/業務アプリ | ドメインロジック・状態遷移・検証 | HTTP ハンドラ、DB アクセス、UI |
+| CLI/ツール | 変換・整形・判定のロジック | 引数解析、ファイル I/O、標準入出力 |
+| ライブラリ | 公開する処理の本体 | 薄い(ほぼ無い)。あっても I/O アダプタ程度 |
+| MLコンペ | 環境・ルール・評価指標の計算 | 探索・方策(agent)、自己対戦(eval) |
+| 研究/PoC | 前処理・指標計算など再現が要る部分 | 実験ドライバ、可視化 |
+
+**app をさらに分けたければ分けてよい**(MLコンペなら `app/agent` と `app/eval` 等)。
+ただし**分けた先どうしの依存は core を経由させる** — app 内で相互依存を作ると、
+どちらが下位か決まらなくなる。
 
 種別が変わったら Adapt 行だけ差し替える。Core/Scale は不変。

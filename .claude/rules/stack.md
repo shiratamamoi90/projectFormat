@@ -20,7 +20,7 @@
   2. 下の「Commands」の表と、`scripts/hooks.sh` 冒頭の `TEST_CMD` / `FORMAT_CMD` /
      `FORMAT_EXTENSIONS`(整形・テストの実コマンド。表が正本で、写し先はそこだけ)
   3. 下の「命名の記法」(準拠する規約・強制ツール)
-  4. **テストの置き場** — `tests/engine` `tests/agent` `tests/integration` は一例で、
+  4. **テストの置き場** — `tests/core` `tests/app` `tests/integration` は一例で、
      Go は実装と同居、Java は `src/test/java/...` が標準。変えるなら
      `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・上の 2.・TEMPLATE.md のツリーを同時に直す
      (崩してはいけない条件は @test-rules.md「単体テストと総合テスト」の置き場が正本)
@@ -41,7 +41,7 @@
   使用 = `FORMAT_CMD`。対象拡張子は同スクリプトの `FORMAT_EXTENSIONS`)
 - 検証: `scripts/validate.sh`(**言語非依存。記入不要**。/validate と Stop フック
   `scripts/hooks.sh validate` が使用)
-- 評価/自己対戦: `<eval コマンド>`(探索ループを使う種別 — MLコンペ・研究/PoC — のみ記入。
+- 計測: `<計測コマンド>`(非決定的な論点を測る種別 — MLコンペ・研究/PoC — のみ記入。
   Web/CLI/ライブラリでは不要のまま残してよい)
 
 > この表が hooks / skill の呼ぶコマンドの正本。hooks 側を変えたらこの表も一致させる。

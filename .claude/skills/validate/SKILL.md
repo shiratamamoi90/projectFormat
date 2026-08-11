@@ -48,7 +48,7 @@ description: 要件とテストの整合を検査する。OpenSpec の validate 
 ### 3. テスト ↔ ソースコード
 
 - テストが参照する関数・モジュールが src/ に存在するか。
-- 依存方向(engine←agent←eval)を崩した import が無いか。
+- 依存方向(core←app)を崩した import が無いか。
 - N-3 の接頭辞と契約(`apply_*` は純関数、`get_*` は O(1)、`validate_*` は一覧を返す)に
   反する実装が無いか。
 - テストで縛られていない分岐が実装に増えていないか。
