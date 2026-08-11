@@ -24,6 +24,8 @@
    **機密情報(`.env`)・生成物(`__pycache__` `.pytest_cache` `.ruff_cache`)・テンプレート同梱物
    ・ローカルの記録(`decisions/` `experiments/` `baselines/`)** の4区分が追跡対象から外れる
    (区分ごとの中身と理由は `gitignore.template` 自身が正本。ここに一覧を書き写さない)。
+   **生成物・キャッシュ(区分2)は使用言語で中身が変わる**ので、言語を決めたら区分2を差し替える
+   (既定は Python。言語変更時にまとめて直す箇所は `stack.md`「Stack」の言語/FW)。
    続けて `CLAUDE.md` のプロジェクト名、`.claude/rules/stack.md` の `<...>`(**種別**・Stack・「正」・Commands)、`security-rules.md` の「このプロジェクト固有」、そして **`README.md`(作るシステムの紹介 — clone した人が最初に読むファイル)** を埋める。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
 3. `changes/0001-example-*` と `experiments/0001-example-*` を参考にしたら削除。

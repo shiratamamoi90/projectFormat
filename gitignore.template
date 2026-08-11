@@ -25,13 +25,26 @@
 !.env.example
 
 # --- 2. 生成物・キャッシュ --------------------------------------------------
+# **ここだけは使用言語で中身が変わる。既定は Python。** 言語を決めたら
+# (@.claude/rules/stack.md「Stack」の言語/FW)下の Python ブロックをその言語の
+# 生成物に差し替える。差し替えないと、ビルド成果物や依存ディレクトリが未追跡ファイルとして
+# 毎回出続けるか(ノイズ)、逆に git に上がる(リポジトリの肥大)。代表例:
+#   Python  __pycache__/  *.pyc  .venv/  .pytest_cache/  .ruff_cache/  .mypy_cache/
+#   Node/TS node_modules/  dist/  build/  coverage/  .next/  *.tsbuildinfo
+#   Java    target/  build/  *.class  .gradle/
+#   Go      bin/  vendor/
+#   Rust    target/
+#
 # .pytest_cache / .ruff_cache は**このフォーマットの hooks が作る**(Stop で pytest、
-# PostToolUse で ruff format)。除外しないと編集のたびに未追跡ファイルが増える。
+# PostToolUse で ruff format)。hooks を別言語のコマンドに差し替えたときは、その
+# ツールが作るキャッシュに合わせてここも直す(差し替え箇所の一覧は stack.md 側)。
 __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
 .ruff_cache/
+
+# 言語に依存しないもの(どの言語でも残す)
 *.log
 .DS_Store
 

@@ -12,7 +12,13 @@
 - 種別: <architecture.md「種別ごとの Adapt」の表から選ぶ(Web/業務アプリ・CLI/ツール・ライブラリ・
   MLコンペ・研究/PoC)。種別が決まると「正」と Adapt 層の中身が決まる>
 - 言語/FW: <バージョンを明記>(テンプレート既定は Python。hooks が pytest / ruff を呼ぶため、
-  言語を変える場合は .claude/settings.json の hooks と permissions も併せて差し替える)
+  言語を変える場合は次の4つを**併せて**差し替える — 1つでも残すと動かないか黙って素通りする)
+  1. `.claude/settings.json` の hooks と permissions
+  2. 下の「Commands」の表と `scripts/hooks.sh`(整形・テストの実コマンド)
+  3. 下の「命名の記法」(準拠する規約・強制ツール)
+  4. `.gitignore` の区分2「生成物・キャッシュ」— **未追跡ファイルとして出るものは言語ごとに違う**
+     (Python は `__pycache__/` `.pytest_cache/`、Node なら `node_modules/` `dist/` など)。
+     中身と言語別の代表例は `gitignore.template` の区分2 が正本(ここに書き写さない)
 - 環境: <WSL2 / Docker / GPU passthrough など>
 - 依存管理: <lockfile / requirements など。バージョン固定の方法>
 
@@ -30,7 +36,8 @@
 > この表が hooks / skill の呼ぶコマンドの正本。hooks 側を変えたらこの表も一致させる。
 > settings.json / settings.team.json には**イベント名と `scripts/hooks.sh <引数>` だけ**を書き、
 > コマンドを JSON 文字列に直書きしない(引用が壊れやすく、hook の stdin JSON も扱えない)。
-> 言語を Python 以外にする場合はこの表と `scripts/hooks.sh` を併せて差し替える。
+> 言語を Python 以外にする場合の差し替え箇所は、上の「Stack」の言語/FW に4つまとめてある
+> (この表と `scripts/hooks.sh` はそのうちの2番目)。
 
 ## 命名の記法(言語確定時に埋める)
 
