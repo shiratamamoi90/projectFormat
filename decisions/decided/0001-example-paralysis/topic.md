@@ -5,7 +5,7 @@
 - **反映先: `docs/0001-example-status-condition.md`**(シナリオ S0001_01〜05)
 
 > これは決定済み論点の記入例。書式・番号・承認点の正本は `.claude/rules/decision-rules.md`。
-> 新規プロジェクトでは参考にしたら削除する(TEMPLATE.md 手順3)。
+> 新規プロジェクトでは参考にしたら削除する(DEVELOPMENT.md「プロジェクト開始の手順」手順3)。
 
 ## 何を決めるか
 

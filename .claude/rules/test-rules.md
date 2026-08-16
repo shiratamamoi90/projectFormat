@@ -75,7 +75,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 1. **単体と総合を別の場所に分ける。** 速さと落ちた意味が違うため、まとめて回す単位を分離できなくなる。
 2. **単体は core / app の別を保つ**(全シナリオ側とスモーク側)。
 3. **パスを指す4箇所を同時に直す** — @stack.md「Commands」・`scripts/hooks.sh`・
-   `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・TEMPLATE.md のツリー。
+   `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・DEVELOPMENT.md のツリー。
    1つでも残すと、テストを探せないまま「NG が無い」と誤報告する
    (差し替え箇所の一覧は @stack.md「Stack」の言語/FW)。
 

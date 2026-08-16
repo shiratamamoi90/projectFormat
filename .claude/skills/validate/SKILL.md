@@ -31,7 +31,7 @@ description: 要件とテストの整合を検査する。OpenSpec の validate 
   **確認した形跡が無いまま肯定側だけの要件が並んでいたら指摘する**)。
 - `[要確認]` タグが未解決のまま実装に進んでいないか。
 - **ドキュメント同士の食い違い**(正本と写しのずれ):stack.md の Commands ↔ settings.json の
-  hooks、TEMPLATE.md のディレクトリ構造 ↔ 実ファイル、CLAUDE.md の参照先 ↔ 実在するファイル。
+  hooks、DEVELOPMENT.md のディレクトリ構造 ↔ 実ファイル、CLAUDE.md の参照先 ↔ 実在するファイル。
 - **設計判断が記録されているか**(@.claude/rules/decision-rules.md):`decisions/decided/` の
   各論点に、採らなかった案とその理由があるか。独立した論点にすべき判断が、
   `decisions/` に残らないまま実装に現れていないか。

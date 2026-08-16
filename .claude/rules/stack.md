@@ -4,7 +4,7 @@
 バージョンは固定し、変えたらここを更新する。CLAUDE.md からはこのファイルを参照する。
 
 > **`<...>` は不備ではなく、プロジェクト開始時に人間が埋める記入スロット**(リポジトリ直下の
-> `TEMPLATE.md`「使い方」手順1)。空のままならまだ開始状態(未確定)であり、エージェントは自分で
+> `DEVELOPMENT.md`「プロジェクト開始の手順」手順1)。空のままならまだ開始状態(未確定)であり、エージェントは自分で
 > 埋めず、記入を人間に案内して確定を待つ。埋めるまで実装を始めない(CLAUDE.md「エージェントの制約」)。
 
 ## Stack
@@ -22,7 +22,7 @@
   3. 下の「命名の記法」(準拠する規約・強制ツール)
   4. **テストの置き場** — `tests/core` `tests/app` `tests/integration` は一例で、
      Go は実装と同居、Java は `src/test/java/...` が標準。変えるなら
-     `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・上の 2.・TEMPLATE.md のツリーを同時に直す
+     `scripts/validate.sh` 冒頭の `SRC_DIRS` / `TEST_DIRS`・上の 2.・DEVELOPMENT.md のツリーを同時に直す
      (崩してはいけない条件は @test-rules.md「単体テストと総合テスト」の置き場が正本)
   5. `.gitignore` の区分2「生成物・キャッシュ」— **未追跡ファイルとして出るものは言語ごとに違う**
      (Python なら `__pycache__/` `.pytest_cache/`、Node なら `node_modules/` `dist/` など)。

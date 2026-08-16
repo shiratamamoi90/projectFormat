@@ -20,7 +20,7 @@ TEST_DIRS=(tests)
 DOC_DIRS=(docs)
 DECISION_DIR="decisions"
 SCENARIO_ID='S[0-9]{4}_[0-9]{2}'
-EXAMPLE_MARK='-example-'   # 記入例(TEMPLATE.md「このリポジトリの現在の状態」)。実作業ではない
+EXAMPLE_MARK='-example-'   # 記入例(CLAUDE.md「このリポジトリの現在の状態」)。実作業ではない
 MAX_SHOW=10
 fail=0
 
