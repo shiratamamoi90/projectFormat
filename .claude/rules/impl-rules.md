@@ -216,6 +216,8 @@ core の公開 API には**この表の動詞だけ**を使う。表に無い動
   `id, uuid, url, uri, http, json, yaml, csv, db, sql, api, io, ui, cli, env, cfg, ctx,`
   `max, min, num, idx, src, dst, req, res, ms, kb, mb`
 
+- **`req` / `res` は request / response。`result` の略ではない**(`result` は下の「中身のない名前」で
+  禁止しているので、`res` で持ち込まない)。
 - `i` / `j` / `k` はスコープが数行に収まるループ変数のみ許可。
 - **名前の長さはスコープに比例させる**(2.5)。生存が長い識別子ほど長い名前にする。
 - 中身のない名前を単独で使わない:`tmp` `data` `result` `value` `obj` `info` `manager` `helper` `util`。
