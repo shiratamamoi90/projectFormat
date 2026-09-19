@@ -13,6 +13,8 @@
 決定的な部分は根拠で決め(**仕様ループ**)、非決定的な部分は計測で決める(**探索ループ**)。
 規律は **方針(`CLAUDE.md` / `.claude/rules/`)/ 実行(skill)/ 強制(hooks)** の3手段で担保する。
 開始状態かどうかの正本は `CLAUDE.md`「このリポジトリの現在の状態」。
+**Claude Code を使うなら、手順1〜3は `/start-project` が聞き取りで進める**(決めるのは人間。
+この節が手順の正本で、skill は手順を書き写さず参照する)。
 
 **済んでもこの節を消さない。** `stack.md`・`security-rules.md`・`scripts/hooks.sh`・`.gitignore`・
 `docs/glossary.md`・`CLAUDE.md` が**手順番号を名指しで参照する**ため、消すと参照が宙に浮く。
@@ -43,7 +45,7 @@
 4. Claude Code を起動。`/new-topic <名前>` で最初の論点を開き、案を出して議論する。
    決まったら `/decide <論点>` で `docs/` へ統合する。
 5. `/new-work <名前>` で作業単位を切り、`/run-loop <作業名>` で Red→Green→Refactor を回す。
-   完了したら `/validate`。
+   完了したら `/validate`。現在地を見失ったら `/where`(読み取り専用)。
 
 > **git に上げる範囲の正本は `gitignore.template`**(手順1で `.gitignore` になる)。
 > テンプレート同梱物(`CLAUDE.md`・`.claude/`・`scripts/` のフック・雛形と記入例)は
@@ -95,7 +97,7 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 │   ├── settings.team.json          # チーム用 hooks の配線: veto, validate(Scale, マージで有効化)
 │   ├── rules/                      # ルールの正本8本(どれを見るかは CLAUDE.md の参照先表 / Core)
 │   └── skills/                     # スラッシュコマンド(実行 / Core)
-│                                   #   new-topic / decide / new-work / run-loop / validate の SKILL.md
+│                                   #   start-project / new-topic / decide / new-work / run-loop / validate / where の SKILL.md
 ├── decisions/                      # 議論と決定の記録。状態をフォルダで表す(Core)
 │                                   #   .gitkeep は空でも階層を git に残すため(消さない)
 │   ├── undecided/                  #   未決定:論点ごとに topic.md(+ 非決定的なら config/result)

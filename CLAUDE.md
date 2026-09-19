@@ -100,9 +100,9 @@ CLAUDE.md はハードポリシーではない。絶対則は可能な限り hoo
 | 実装・インフラ・**不変条件**・規約(コメント/ハードコード禁止/共通化) | `.claude/rules/impl-rules.md` |
 | 探索/実験(仮説・計測・再現性) | `.claude/rules/experiment-rules.md` |
 | セキュリティ(機密・危険操作・依存・入力検証) | `.claude/rules/security-rules.md` |
-| スラッシュコマンド | `.claude/skills/`(/new-topic /decide /new-work /run-loop /validate) |
+| スラッシュコマンド | `.claude/skills/`(/start-project /new-topic /decide /new-work /run-loop /validate /where) |
 | hooks の配線 | `.claude/settings.json`(Core: format on edit, test on stop)/ `.claude/settings.team.json`(Scale: veto, validate。マージで有効化) |
 | hooks の実体 | `scripts/hooks.sh <format\|test\|veto\|validate>`(4イベントとも中身はこの1本) |
 
-この表のファイル(`DEVELOPMENT.md`・rules 8本・skill 5つ・settings 2つ・スクリプト2本)はすべて
+この表のファイル(`DEVELOPMENT.md`・rules 8本・skill 7つ・settings 2つ・スクリプト2本)はすべて
 本リポジトリに収録済み。パスはリポジトリ直下からの相対パス。

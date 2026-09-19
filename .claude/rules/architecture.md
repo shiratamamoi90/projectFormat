@@ -25,14 +25,14 @@
 
 | | 方針 | 実行 | 強制 |
 |---|---|---|---|
-| **Core** | 二系統原則・Don't | /new-topic, /decide, /new-work, /validate, /run-loop | format on edit, test on stop |
+| **Core** | 二系統原則・Don't | /start-project, /new-topic, /decide, /new-work, /run-loop, /validate, /where | format on edit, test on stop |
 | **Scale** | チーム規約・ロール | /measure, /team-onboarding | 危険操作veto, 時間予算, CI |
 | **Adapt** | 「正」の定義・不変条件 | ドメイン別コマンド | ドメイン別検査 |
 
 各セルは独立。1セルの変更が他に波及しない。
 
 実体の所在(このテンプレートに収録済みのもの):
-- Core・実行の skill 5つ → `.claude/skills/{new-topic,decide,new-work,run-loop,validate}/SKILL.md`
+- Core・実行の skill 7つ → `.claude/skills/{start-project,new-topic,decide,new-work,run-loop,validate,where}/SKILL.md`
 - Core・強制の hooks(format on edit / test on stop)→ 配線は `.claude/settings.json`、
   実体は `scripts/hooks.sh format` / `scripts/hooks.sh test`
 - Scale・強制のうち veto と validate → 配線は `.claude/settings.team.json`(settings.json にマージで
