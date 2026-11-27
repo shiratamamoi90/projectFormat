@@ -35,6 +35,8 @@
 | 逃げ | `retreat` | — | `escape`, `flee`, `run_away` | バトル場のポケモンをベンチに下げる行動 |
 | ターン終了 | `turn_end` | — | `end_turn`, `eot`, `turn_finish` | 1ターンの解決が終わる時点。持続効果の解除を判定する |
 | ベンチ | `bench` | — | `bnc`, `benched_area`, `reserve` | バトル場以外に控えているポケモンの置き場 |
+| ポケモン | `pokemon` | — | `pkmn`, `poke` | バトル場またはベンチに置かれ、状態異常の対象になるもの |
+| バトル場 | `active_spot` | — | `active_slot`, `battle_field`, `battle_spot` | 行動できるポケモンを1体置く場所。バトル場の状態(`battle_state`)とは別の概念 |
 
 > 名詞形は**概念・データ・型の名前**。関数名にするときは N-3 の接頭辞を付ける(例と理由は N-3)。
 

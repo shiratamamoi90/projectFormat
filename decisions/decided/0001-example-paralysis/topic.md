@@ -21,7 +21,7 @@
 
 ## 決定
 
-**案A を採る。** 合法手の生成側(`get_legal_actions`)で落とす。
+**案A を採る。** 合法手の生成側(`compute_legal_actions`)で落とす。
 
 ## 理由
 

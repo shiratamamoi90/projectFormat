@@ -23,13 +23,18 @@ description: いまどこにいるかを読み取り専用で報告する。効�
 続けて発足の到達度を見る(未記入のまま作業に入るのを防ぐ):
 
 ```bash
-grep -n '<[^<>]\{2,\}>' .claude/rules/stack.md | head   # 未記入スロット
+grep -nE '^<|: `?<|`<未定>`' .claude/rules/stack.md     # 未記入スロット(値の位置にある <...> だけ)
+grep -n '^<' .claude/rules/security-rules.md             # 「このプロジェクト固有」が未記入
 grep -n '^TEST_CMD=\|^FORMAT_CMD=\|^FORMAT_EXTENSIONS=' scripts/hooks.sh
 ls -d gitignore.template 2>/dev/null                     # 残っていれば未リネーム(除外が効いていない)
 ls -d decisions/*/*-example-* docs/*-example-*.md work/*-example-* 2>/dev/null
 grep -l PreToolUse .claude/settings.json                 # veto がマージ済みか(Scale)
 grep -c 記入スロット README.md DEVELOPMENT.md            # 雛形の引用ブロックの残り
 ```
+
+stack.md のスロット検出を `<...>` 全般で取らないのは、説明文(`<...>` は記入スロット)や命名表の
+記入例列(`test_<対象>.py`)が**記入後も残り**、発足が済んでも「未記入」と誤報告するため。
+「計測」の行は、計測しない種別(Web/CLI/ライブラリ)では空のままが正しい — 未記入として数えない。
 
 ### 3. 途中の作業
 

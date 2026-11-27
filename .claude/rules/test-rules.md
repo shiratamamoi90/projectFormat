@@ -1,5 +1,8 @@
 # テストのルール(テストはコード前提 = 先に書く)
 
+> 本文中の例(まひ・ベンチ・`S0001_xx` など)は説明用の架空の題材で、このプロジェクトの仕様ではない
+> (読み方は CLAUDE.md 冒頭の注記が正本)。
+
 ## 着手の許可(このループに入る前の関門)
 
 **テストと実装は、人間の明確な許可が無い限り作成も実行もしない。許可が出れば作成・実行してよい。**
@@ -33,7 +36,7 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 > 単体だけで閉じない(なぜ両方書くかは下の「単体テストと総合テスト」)。
 
 > **赤確認の担保**は「実行(skill)」が持つ:/run-loop が赤の確認・報告を経ないと実装に進めない手順にしている。
-> hooks では意図的にブロックしない(Stop フックは通知のみ — Red フェーズの意図的な赤を妨げないため)。
+> hooks では意図的にブロックしない(Stop フックは人間への通知(`systemMessage`)のみ — Red フェーズの意図的な赤を妨げないため)。
 
 ## 対応関係
 
@@ -111,13 +114,13 @@ CLAUDE.md「エージェントの制約」の同項がこのルールの宣言�
 次の3つ** — シナリオ ID を一字も改変せず関数名に含める / 1シナリオ = 1テスト関数 /
 GIVEN・WHEN・THEN の3段で書き、総合テストには ID を付けない。
 
-単体(`tests/core/test_paralysis.py`)— 1シナリオ = 1メソッド:
+単体(`tests/core/test_status_condition.py`)— 1シナリオ = 1メソッド:
 
 ```python
-class TestParalysis:
+class TestStatusCondition:
     def test_S0001_02_paralyzed_actor_cannot_attack(self):
         state = make_battle_state(active_status="paralyzed")  # GIVEN
-        actions = core.get_legal_actions(state)             # WHEN
+        actions = core.compute_legal_actions(state)           # WHEN
         assert not any(a.kind == "attack" for a in actions)   # THEN
 
     def test_S0001_03_paralysis_is_cleared_at_turn_end(self):
@@ -132,28 +135,28 @@ def test_paralysis_flow_through_one_turn():   # 総合テストに ID は付け�
     # 単体で縛った分岐は再検査しない。結合して経路が通ることだけを見る。
     state = build_battle_state(seed=42)                   # シード固定 = 再現可能
     state = core.apply_status_condition(state, PARALYSIS)
-    assert not any(a.kind == "attack" for a in core.get_legal_actions(state))
+    assert not any(a.kind == "attack" for a in core.compute_legal_actions(state))
     state = core.apply_turn_end(state)
-    assert core.get_legal_actions(state)                # 回復し行動可能に戻る
+    assert core.compute_legal_actions(state)              # 回復し行動可能に戻る
 ```
 
 同じ S0001_02 を他の言語で書いた場合。**変わるのは記法だけで、上の3つは同じ**:
 
 ```java
-// src/test/java/core/ParalysisTest.java — Java の標準配置に合わせて置き場を変えた場合
+// src/test/java/core/StatusConditionTest.java — Java の標準配置に合わせて置き場を変えた場合
 @Test
 void S0001_02_paralyzedActorCannotAttack() {
     BattleState state = makeBattleState(Status.PARALYZED);        // GIVEN
-    List<Action> actions = Engine.getLegalActions(state);         // WHEN
+    List<Action> actions = Engine.computeLegalActions(state);     // WHEN
     assertTrue(actions.stream().noneMatch(Action::isAttack));     // THEN
 }
 ```
 
 ```typescript
-// tests/core/paralysis.test.ts
+// tests/core/status-condition.test.ts
 it('S0001_02 paralyzed actor cannot attack', () => {
   const state = makeBattleState({ activeStatus: 'paralyzed' });   // GIVEN
-  const actions = core.getLegalActions(state);                  // WHEN
+  const actions = core.computeLegalActions(state);              // WHEN
   expect(actions.some((a) => a.kind === 'attack')).toBe(false);   // THEN
 });
 ```

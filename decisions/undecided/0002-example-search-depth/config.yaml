@@ -1,3 +1,4 @@
+# 記入例(論点 0002 の計測設定)。参考にしたら論点フォルダごと削除する(DEVELOPMENT.md「プロジェクト開始の手順」手順3)
 # 1論点 = 1変数のみ変更(@.claude/rules/experiment-rules.md)
 agent: mcts
 search_depth: 4      # baseline は 2

@@ -24,6 +24,7 @@ EXAMPLE_MARK='-example-'   # 記入例(CLAUDE.md「このリポジトリの現�
 MAX_SHOW=10
 fail=0
 
+# 見出しは impl-rules.md N-8 の項目名と一字一句同じにする(/validate がこの名前で N-8 と対応づける)。
 section() { echo "== validate: $1 =="; }
 report_ok() { echo "  OK"; }
 
@@ -108,11 +109,11 @@ id_pairs=$(pick ID "$doc_out" | grep -v -- "$EXAMPLE_MARK" || true)
 # 払い出し済み ID の一覧。重複検査と要件↔test 照合の両方が使うので1回だけ作る。
 doc_id_hits=$(nonempty "$(printf '%s\n' "$id_pairs" | cut -f2)")
 
-section "要件の書式(見出し・GIVEN/WHEN/THEN)"
+section "要件の書式"
 if [ -n "$doc_err" ]; then report_ng "要件の書式が仕様どおりでない" "$doc_err"; else report_ok; fi
 
 # ---------------------------------------------------------------------------
-section "シナリオ ID の払い出し(N-2)"
+section "ID の払い出し"
 # 同じ ID を2つの見出しが持つ = 払い出しの重複。ID は不変・再利用禁止。
 dup_doc_ids=$(printf '%s\n' "$doc_id_hits" | sort | uniq -d)
 # ID の先頭4桁は論点番号。**決定済み**の論点に対応していなければならない。
@@ -145,7 +146,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "用語集の書式(N-1)"
+section "用語集の書式"
 # 「使ってはいけない表記」を列位置で読むため、先に表の形を検査する。
 # 出力は ERR(書式NG)と WORD(禁止表記)の2種類。
 glossary_out=$(python3 - "$GLOSSARY" <<'PY'
@@ -195,7 +196,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "用語の揺れ(N-1)"
+section "用語の揺れ"
 hits=""
 for word in $banned; do
   # 要件文書こそ用語の正本なので docs/ も見る。**用語集自身は除外**する
@@ -212,7 +213,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "要件 ↔ test のシナリオ ID 照合(N-2)"
+section "要件 ↔ test 対応"
 test_id_hits=$(grep -rhoE "$SCENARIO_ID" "${TEST_DIRS[@]}" 2>/dev/null || true)   # 下の重複検査も使う
 doc_ids=$(printf '%s\n' "$doc_id_hits" | sort -u)
 test_ids=$(nonempty "$test_id_hits" | sort -u)
@@ -226,7 +227,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "1シナリオ1テスト(N-2)"
+section "1シナリオ1テスト"
 dup_test_ids=$(nonempty "$test_id_hits" | sort | uniq -d)
 if [ -n "$dup_test_ids" ]; then
   report_ng "同じシナリオ ID のテストが複数ある(1シナリオ = 1テスト関数)" "$dup_test_ids"
@@ -235,7 +236,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-section "否定形ブール(N-4)"
+section "否定形ブール"
 # `is_not_x` / `shouldNotX` / `not` で終わる `should_not` まで拾う。
 neg=$(grep -rnE '\b(is|has|can|should)(_not_|_not\b|Not[A-Z])' "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" 2>/dev/null)
 if [ -n "$neg" ]; then
@@ -316,11 +317,11 @@ for state in ('undecided', 'decided'):
                 print(f"LINK\t{topic} の反映先 {ref} が実在しない")
 PY
 )
-section "論点の種別タグ(N-8)"
+section "論点のタグ"
 topic_tag=$(pick TAG "$topic_out")
-if [ -n "$topic_tag" ]; then report_ng "論点の種別が判定できない、または二系統が混ざっている" "$topic_tag"; else report_ok; fi
+if [ -n "$topic_tag" ]; then report_ng "論点の種別・状態のタグが雛形のまま・位置とずれている、または二系統が混ざっている" "$topic_tag"; else report_ok; fi
 
-section "未統合の決定(N-8)"
+section "未統合の決定"
 topic_link=$(pick LINK "$topic_out")
 if [ -n "$topic_link" ]; then report_ng "決定済みなのに反映先が無い" "$topic_link"; else report_ok; fi
 

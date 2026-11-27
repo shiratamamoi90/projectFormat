@@ -82,7 +82,8 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 パスの役割とレイヤー(Core/Scale/Adapt)はこのツリーが正本。**同じ一覧を別の表で持たない**
 (2箇所あると片方が古いまま残る — `.claude/rules/impl-rules.md`「共通化」)。
 `*-example-*` の行は記入例なので、**上の手順3で消したらこのツリーからも消す**
-(`/validate` がツリーと実ファイルを突き合わせる)。
+(`/validate` の目視判定がツリーと実ファイルを突き合わせる。`scripts/validate.sh` の
+機械検査には含まれないので、スクリプトの整合OK だけで済ませない)。
 
 ```
 .
@@ -101,9 +102,9 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 ├── decisions/                      # 議論と決定の記録。状態をフォルダで表す(Core)
 │                                   #   .gitkeep は空でも階層を git に残すため(消さない)
 │   ├── undecided/                  #   未決定:論点ごとに topic.md(+ 非決定的なら config/result)
-│   │   └── 0002-example-search-depth/
+│   │   └── 0002-example-search-depth/  # 記入例:非決定的な論点(計測中)
 │   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
-│       └── 0001-example-paralysis/
+│       └── 0001-example-paralysis/     # 記入例:決定的な論点(決定済み)
 ├── docs/                           # 統合先:決定済みの要件(何を満たすか / Core)
 │   ├── overview.md                 #   確定要件(決定を統合したものだけ置く。分割は自由)
 │   ├── 0001-example-status-condition.md  # 記入例:統合された姿
@@ -133,7 +134,7 @@ src/core          ←          src/app
 - `src/core/` … 決定的なコアロジック。副作用を持たせない。`<このプロジェクトでの中身>`
 - `src/app/` … I/O・UI・外部サービスなど、core を使う側。`<このプロジェクトでの中身>`
   分けたければ配下でさらに分けてよいが、**分けた先どうしの依存は core を経由させる**。
-- **矢印の向きにしか依存してよい。** core は app を import しない。
+- **矢印の向きにのみ依存してよい。** core は app を import しない。
   逆向きを作ると、テスト容易性と再現性が同時に壊れる。
 - `tests/core/` `tests/app/` … 単体。`tests/integration/` … 総合。
 
@@ -191,6 +192,10 @@ src/core          ←          src/app
 - **コンペ**: + Adapt(`src/app/` と、比較基準になる baseline の実装)。
 - **チーム**: + Scale(`settings.team.json` を `settings.json` にマージ・CI から validate)。
   `decisions/` は既定で追跡されるので、議論と決定はそのまま共有される。
+  **規律の本体は既定で追跡されないので、`.gitignore` 区分3「テンプレート同梱物」のうち
+  `/CLAUDE.md` `/.claude/` `/scripts/hooks.sh` `/scripts/validate.sh` の行を消して共有する**
+  (消さないと、マージした settings も CI が呼ぶ `validate.sh` もメンバーの手元に届かない)。
+  同じ区分の記入例と `gitignore.template` の行は残す。
   追跡範囲の正本は `gitignore.template`(上の「プロジェクト開始の手順」の注記)。
 
 各レイヤーの中身・未収録のもの・設計思想は `.claude/rules/architecture.md`。
