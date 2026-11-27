@@ -40,7 +40,12 @@
 - フォーマット: `<1ファイルを整形するコマンド>`(PostToolUse フック `scripts/hooks.sh format` が
   使用 = `FORMAT_CMD`。対象拡張子は同スクリプトの `FORMAT_EXTENSIONS`)
 - 検証: `scripts/validate.sh`(**言語非依存。記入不要**。/validate と Stop フック
-  `scripts/hooks.sh validate` が使用)
+  `scripts/hooks.sh validate` が使用。`--normative-diff <ref>` で規範ページの差分だけを見る — /tidy・/decide が使用)
+- 依存の脆弱性(SCA): `<依存の既知脆弱性を調べるコマンド>`(例: `osv-scanner scan source -r .` は多言語対応。
+  `npm audit` / `pip-audit` / `govulncheck ./...` / `cargo audit`。CI と定期実行で回す — @security-rules.md「依存・サプライチェーン」)
+- シークレット検出: `<秘密の混入を調べるコマンド>`(例: `gitleaks git .` / `trufflehog git file://.`。
+  言語非依存。pre-commit か CI に置く — @security-rules.md「機密情報」)
+- 静的解析(SAST): `<セキュリティの静的解析コマンド>`(例: `semgrep scan --config auto`。CI に置く)
 - 計測: `<計測コマンド>`(非決定的な論点を測る種別 — MLコンペ・研究/PoC — のみ記入。
   Web/CLI/ライブラリでは不要のまま残してよい)
 

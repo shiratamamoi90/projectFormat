@@ -5,9 +5,24 @@
       "Bash(scripts/validate.sh)",
       "Bash(./scripts/validate.sh)",
       "Bash(bash scripts/validate.sh)",
+      "Bash(scripts/validate.sh --normative-diff:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.npmrc)",
+      "Read(~/.netrc)"
     ]
   },
   "hooks": {

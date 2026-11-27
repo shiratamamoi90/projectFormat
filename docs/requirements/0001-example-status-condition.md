@@ -1,10 +1,15 @@
-# 状態異常(記入例 — 論点 0001 を統合したもの)
+---
+decisions: [0001]
+---
+# 要件:状態異常(記入例 — 論点 0001 を統合したもの)
 
-> `decisions/decided/0001-example-paralysis/` を `docs/` に統合した姿の記入例。
+> `decisions/decided/0001-example-paralysis/` を要件定義に統合した姿の記入例(規範ページ)。
 > ファイル名に `-example-` を含むため `scripts/validate.sh` の要件↔test 照合からは除外される。
 > 参考にしたら削除する(DEVELOPMENT.md「プロジェクト開始の手順」手順3)。
 
 まひ状態のポケモンは攻撃・逃げができず、ターン終了時に回復する。
+出典は [架空ルールブック v1.0 の要約](../summaries/rulebook-example-v1.md)、
+責務の置き場は [基本設計](../design/0001-example-basic-design.md) にある。
 
 ### S0001_01 まひ付与
 - GIVEN バトル場のポケモンがまひでない

@@ -27,7 +27,7 @@ grep -nE '^<|: `?<|`<未定>`' .claude/rules/stack.md     # 未記入スロッ�
 grep -n '^<' .claude/rules/security-rules.md             # 「このプロジェクト固有」が未記入
 grep -n '^TEST_CMD=\|^FORMAT_CMD=\|^FORMAT_EXTENSIONS=' scripts/hooks.sh
 ls -d gitignore.template 2>/dev/null                     # 残っていれば未リネーム(除外が効いていない)
-ls -d decisions/*/*-example-* docs/*-example-*.md work/*-example-* 2>/dev/null
+ls -d decisions/*/*-example-* work/*-example-* 2>/dev/null; find docs -name '*-example-*'
 grep -l PreToolUse .claude/settings.json                 # veto がマージ済みか(Scale)
 grep -c 記入スロット README.md DEVELOPMENT.md            # 雛形の引用ブロックの残り
 ```
@@ -40,6 +40,9 @@ stack.md のスロット検出を `<...>` 全般で取らないのは、説明�
 
 - `decisions/undecided/` の各論点。**「現在の考え」から何を待っているかを抜き**、議論中と
   止まっているものを区別する(@.claude/rules/decision-rules.md「決まらないまま止めるとき」)。
+- `sources/` にあるのに、どの要約ページの `sources:` にも出てこない一次資料(= 未取り込み。`/ingest` へ)。
+- `docs/log.md` の直近の記録(`grep "^## \[" docs/log.md | tail -5`)。最後の `tidy` から
+  `decide` が重なっていれば、目録や全体像が読みにくくなっている合図(`/tidy` へ)。
 - `work/NNNN-*/tasks.md` の未チェック項目。どの段(Red / Green / 総合)で止まっているか。
 - `[要確認]` の残り。
 - `validate.sh` の「要件 ↔ test」「未統合の決定」セクションの NG(= 未実装 / 未統合の残作業)。
@@ -61,5 +64,5 @@ stack.md のスロット検出を `<...>` 全般で取らないのは、説明�
 ## 報告
 
 1〜5 をこの順(上位から)で出し、最後に**次の一手を1つだけ**示す
-(`/start-project` `/new-topic` `/decide` `/new-work` `/run-loop` `/validate` のどれか)。
+(`/start-project` `/new-topic` `/decide` `/new-work` `/run-loop` `/validate` `/ingest` `/tidy` のどれか)。
 **複数並べない** — 並べると選ぶ手間が人間に戻る。何も残っていなければ「進行中の作業なし」と報告する。

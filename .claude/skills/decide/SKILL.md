@@ -19,15 +19,24 @@ description: 決まった論点を decisions/undecided/ から decided/ へ移�
 2. フォルダごと `decisions/decided/` へ移す。**フォルダの位置が状態**なので、
    `状態:` の行も決定済みに直す(直し忘れは /validate が「decided/ にあるのに
    `状態: 未決定`」として NG にする)。
-3. **その場で統合する。未統合の decided を残さない。**
-   - **満たすべきこと** → `docs/` に GIVEN/WHEN/THEN で書く。シナリオ ID の先頭4桁は
-     **論点番号**(@.claude/rules/impl-rules.md N-2)。正常系・異常系・境界・否定を網羅する
+3. **その場で統合する。未統合の decided を残さない。** 置き場と書き方の正本は
+   @.claude/rules/doc-rules.md「要件定義の書き方」「基本設計の書き方」。
+   - **満たすべき振る舞い** → `docs/requirements/` に GIVEN/WHEN/THEN で書く。シナリオ ID の
+     先頭4桁は**論点番号**(@.claude/rules/impl-rules.md N-2)。正常系・異常系・境界・否定を網羅する
      (@.claude/rules/doc-rules.md「必須カバレッジ」)。
-   - **構造の決定(どのファイル・どの層に置くか)は文書に書かない。** 結果はコードに現れ、
-     理由は `topic.md` に残る。要件に及ばない論点なら `反映先: —` として統合を終える。
-   - **シナリオ本文を `decided/` 側に重複させない。** `topic.md` には反映先だけを記す。
-4. 「決まらなかったこと」があれば、`/new-topic` で別の論点として `undecided/` に切り出す。
-5. `scripts/validate.sh` を実行し、統合結果が検査を通ることを確認して報告する。
+   - **構成要素の境界・責務、外との契約、概念データ** → `docs/design/` に箇条書きか表で書く。
+   - **詳細設計(どのファイル・どの関数に置くか)は文書に書かない。** 結果はコードに現れ、
+     理由は `topic.md` に残る。要件にも設計にも及ばない論点なら `反映先: —` として統合を終える。
+   - 書いたページの frontmatter の `decisions:` に論点番号を足す。新しいページは既存のページと
+     重ならないように置き、**読みやすさのための組み替えは `/tidy` に任せる**(ここでは混ぜない)。
+   - **シナリオ本文を `decided/` 側に重複させない。** `topic.md` の `反映先:` にはシナリオ ID と
+     設計の項目名だけを書く(パスは書かない — `/tidy` が移すため)。
+4. `docs/index.md`・`docs/overview.md` を更新し、`docs/log.md` に追記する
+   (`## [YYYY-MM-DD] decide | 論点 NNNN <名前>`)。
+5. `scripts/validate.sh --normative-diff HEAD` を実行し、**規範の差分がこの論点のシナリオと行だけ**で
+   あることを確かめる。他の論点の規範が変わっていたら、それは別の論点なので戻す。
+6. 「決まらなかったこと」があれば、`/new-topic` で別の論点として `undecided/` に切り出す。
+7. `scripts/validate.sh` を実行し、統合結果が検査を通ることを確認して報告する。
    この時点では要件にあって test が無い(未実装)NG が出るのが正常。
-6. 次は `/new-work` で作業単位を切る。**この skill はテストも実装も書かない**
+8. 次は `/new-work` で作業単位を切る。**この skill はテストも実装も書かない**
    (@.claude/rules/test-rules.md「着手の許可」)。

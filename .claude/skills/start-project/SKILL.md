@@ -24,7 +24,7 @@ description: テンプレートをコピーした直後の発足を聞き取り�
    `CLAUDE.md`(特に「このリポジトリの現在の状態」)/ `DEVELOPMENT.md`「プロジェクト開始の手順」と
    「ディレクトリ構造」/ `.claude/rules/` 8本 / `gitignore.template`(追跡範囲の正本)/
    `scripts/hooks.sh` 冒頭の記入スロットと `scripts/validate.sh` 冒頭の設定 /
-   `docs/glossary.md` と記入例3種(`decisions/` `docs/` `work/` の `-example-`)。
+   `docs/glossary.md`・`docs/index.md`・`docs/log.md` と記入例(`decisions/` `docs/` `work/` の `-example-`)。
 2. `/where` を実行して現在地を出す。**発足の到達度はそこでだけ判定する**(同じ判定をこの skill に
    持たない)。中断された後の再実行も、この結果を見て続きから入る。
 3. 上の前提確認を人間に投げる。承認が無ければここで停止する。
@@ -56,10 +56,15 @@ description: テンプレートをコピーした直後の発足を聞き取り�
 
 - `gitignore.template` → `.gitignore` のリネーム。**最初のコミット前に必ず**
   (リネームするまで除外は一切効かない。@.claude/rules/security-rules.md「機密情報」)
-- 記入例の削除:`decisions/*/*-example-*` `docs/*-example-*.md` `work/*-example-*` と、
-  **`DEVELOPMENT.md` のディレクトリ構造ツリーの該当行**(ファイルだけ消すとツリーが古くなる)
+- 記入例の削除:`decisions/*/*-example-*`・`docs/` 配下の `*-example-*`(`find docs -name '*-example-*'`)・
+  `work/*-example-*` と、**それを指す行** — `docs/index.md` の目録行・`docs/log.md` の記入例の記録・
+  `DEVELOPMENT.md` のディレクトリ構造ツリー(ファイルだけ消すと、目録のリンク切れを validate.sh が
+  「索引とリンク」で NG にし、ツリーは黙って古くなる)
 - `docs/glossary.md` の用語行を自分のドメインの語へ置き換える(**表ごと消さない** —
-  用語行が1つも無いと validate.sh が NG を出す)
+  用語行が1つも無いと validate.sh が NG を出す)。frontmatter の `decisions:` は、下の段階3で作る
+  論点 0001 の番号のまま使える
+- `docs/overview.md` の `<...>` を段階2の答え(何を作るか)で埋める。一次資料があれば `sources/` に置き、
+  段階3の後に `/ingest` で1件ずつ取り込む(**原本は既定で git 追跡外** — gitignore.template)
 
 最後に発火を確認する。**確認しない hooks は、効いているつもりで素通りする**:
 
@@ -80,7 +85,8 @@ echo '{"tool_input":{"file_path":"<整形対象の実ファイル>"}}' | scripts
 
 1. **論点 0001 を決定済みとして作る**(例 `decisions/decided/0001-project-foundation/topic.md`)。
    書式は @.claude/rules/doc-rules.md「topic.md テンプレ」。`種別: 決定的` / `状態: 決定済み` /
-   `反映先: —`(要件には及ばない)。段階2で採った種別・言語・「正」と、**却下した案**を書く。
+   `反映先: 用語集(段階2の最初のドメイン語)`(用語集の frontmatter `decisions: [0001]` がこの論点を指す)。
+   段階2で採った種別・言語・「正」と、**却下した案**を書く。
    **記入例の片づけ(段階2)を済ませてから作る** — 先に作ると記入例の番号とぶつかる。
 2. **「決まらなかったこと(次の論点へ)」に以降の検討事項を列挙する。** 例:app の分け方 /
    外部との契約(入出力形式・設定項目)/ baseline / 新規依存の採用 / 時間予算・anytime 設計 /

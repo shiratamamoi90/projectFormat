@@ -1,3 +1,6 @@
+---
+decisions: [0001]
+---
 # 用語集(ドメイン語彙の「正」)
 
 > **下の「## 用語」と「## 却下した語」の行はすべて記入例**(まひ・状態異常 等)。
@@ -35,6 +38,8 @@
 | 逃げ | `retreat` | — | `escape`, `flee`, `run_away` | バトル場のポケモンをベンチに下げる行動 |
 | ターン終了 | `turn_end` | — | `end_turn`, `eot`, `turn_finish` | 1ターンの解決が終わる時点。持続効果の解除を判定する |
 | ベンチ | `bench` | — | `bnc`, `benched_area`, `reserve` | バトル場以外に控えているポケモンの置き場 |
+| 対戦エンジン | `battle_engine` | — | `game_engine`, `rule_engine` | バトル場の状態と行動から次の状態と合法手を決める構成要素 |
+| 探索エージェント | `search_agent` | — | `ai_player`, `bot` | 合法手から次の行動を選ぶ構成要素。合法手を自分で判定しない |
 | ポケモン | `pokemon` | — | `pkmn`, `poke` | バトル場またはベンチに置かれ、状態異常の対象になるもの |
 | バトル場 | `active_spot` | — | `active_slot`, `battle_field`, `battle_spot` | 行動できるポケモンを1体置く場所。バトル場の状態(`battle_state`)とは別の概念 |
 

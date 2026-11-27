@@ -1,6 +1,6 @@
 # 差分 0001: まひ状態(記入例)
 
-反映元:`docs/0001-example-status-condition.md`
+反映元:要件 S0001_01〜05 / 基本設計「構成要素と責務」(場所は `docs/index.md` から引く)
 
 ## ADDED
 - src/core/status_condition.py

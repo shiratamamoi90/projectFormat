@@ -36,21 +36,24 @@
    構成・テスト・変更の進め方)** を埋める。**この2つを混ぜない**(読み手が違う。使う人は
    開発に一切関わらない前提)。種別を決めると Adapt 層が決まる(`architecture.md` の種別表)。
 2. `.claude/rules/` の各ルールを必要に応じて調整(基本そのままで可)。
-3. 記入例を片づける。**削除**するもの:`decisions/*/*-example-*`・`docs/*-example-*.md`・
-   `work/*-example-*`(テンプレは `.claude/rules/` 側にあるので消しても失われない)。
+3. 記入例を片づける。**削除**するもの:`decisions/*/*-example-*`・`docs/` 配下の `*-example-*`
+   (`find docs -name '*-example-*'`)・`work/*-example-*`(テンプレは `.claude/rules/` 側にあるので
+   消しても失われない)。あわせて `docs/index.md` の目録行と `docs/log.md` の記入例の記録も消す
+   (目録に残ったリンクは `validate.sh` が「索引とリンク」で NG にする)。
    目印は `-example-` の1つだけ — `.gitignore` の除外と `validate.sh` の `EXAMPLE_MARK` が
    同じ目印を見ているので、記入例を足すときもこの綴りに揃える。
    **置き換える**もの:`docs/glossary.md` の用語行(自分のドメインの語へ。**表ごと消すと
    `validate.sh` が NG を出す**ので、確実に使う語を1つ残して始める)。
 4. Claude Code を起動。`/new-topic <名前>` で最初の論点を開き、案を出して議論する。
-   決まったら `/decide <論点>` で `docs/` へ統合する。
+   決まったら `/decide <論点>` で `docs/` へ統合する。一次資料は `sources/` に置いて
+   `/ingest <資料>` で1件ずつ取り込み、決まったことが増えたら `/tidy` で `docs/` を整理し直す。
 5. `/new-work <名前>` で作業単位を切り、`/run-loop <作業名>` で Red→Green→Refactor を回す。
    完了したら `/validate`。現在地を見失ったら `/where`(読み取り専用)。
 
 > **git に上げる範囲の正本は `gitignore.template`**(手順1で `.gitignore` になる)。
 > テンプレート同梱物(`CLAUDE.md`・`.claude/`・`scripts/` のフック・雛形と記入例)は
 > 追跡せず、`src/` `tests/` `docs/` `decisions/`・`README.md`・`DEVELOPMENT.md` をコミットする
-> (`work/` は手元の作業管理なので追跡しない)。**エージェントへの規律(`CLAUDE.md` / `.claude/` /
+> (`work/` は手元の作業管理、`sources/` の原本は機密・著作物を含みうるので追跡しない)。**エージェントへの規律(`CLAUDE.md` / `.claude/` /
 > フック)は上げず、人間が読む2文書(`README.md` / `DEVELOPMENT.md`)を上げる**という切り分け
 > — 構成やこの手順の説明もその2文書の一部として一緒に追跡される。フォーマット本体のリポジトリだけは
 > 例外で、同梱物ごと管理するため `.gitignore` が空(`CLAUDE.md`「このリポジトリの現在の状態」)。
@@ -98,18 +101,27 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 │   ├── settings.team.json          # チーム用 hooks の配線: veto, validate(Scale, マージで有効化)
 │   ├── rules/                      # ルールの正本8本(どれを見るかは CLAUDE.md の参照先表 / Core)
 │   └── skills/                     # スラッシュコマンド(実行 / Core)
-│                                   #   start-project / new-topic / decide / new-work / run-loop / validate / where の SKILL.md
+│                                   #   start-project / new-topic / decide / new-work / run-loop / validate / where / ingest / tidy の SKILL.md
 ├── decisions/                      # 議論と決定の記録。状態をフォルダで表す(Core)
 │                                   #   .gitkeep は空でも階層を git に残すため(消さない)
 │   ├── undecided/                  #   未決定:論点ごとに topic.md(+ 非決定的なら config/result)
 │   │   └── 0002-example-search-depth/  # 記入例:非決定的な論点(計測中)
 │   └── decided/                    #   決定済み:決定 + 理由 + 却下案 + 反映先
 │       └── 0001-example-paralysis/     # 記入例:決定的な論点(決定済み)
-├── docs/                           # 統合先:決定済みの要件(何を満たすか / Core)
-│   ├── overview.md                 #   確定要件(決定を統合したものだけ置く。分割は自由)
-│   ├── 0001-example-status-condition.md  # 記入例:統合された姿
-│   └── glossary.md                 #   用語集:ドメイン語彙の「正」(N-1。validate.sh が参照)
-│                                   #   **どう作るかは書かない — src/ を見れば分かる**
+├── sources/                        # 一次資料の原本(仕様書・議事録・PDF)。不変・**既定で git 追跡外**(Core)
+├── docs/                           # LLM Wiki:決めたことを LLM が整理し続ける(運用は doc-rules.md / Core)
+│   ├── index.md                    #   目録:全ページの入口(載っていないページは validate.sh が NG)
+│   ├── log.md                      #   作業記録:ingest / decide / tidy の追記専用の時系列
+│   ├── overview.md                 #   全体像:何を作るか・どこまで決まったか(説明)
+│   ├── glossary.md                 #   用語集:ドメイン語彙の「正」(規範。N-1。validate.sh が参照)
+│   ├── requirements/               #   要件定義(規範):機能要件 GIVEN/WHEN/THEN・非機能要件
+│   │   └── 0001-example-status-condition.md  # 記入例:統合された要件
+│   ├── design/                     #   基本設計(規範):境界・責務・外部契約・概念データ・セキュリティ設計
+│   │   └── 0001-example-basic-design.md      # 記入例:統合された基本設計
+│   ├── summaries/                  #   一次資料ごとの要約(説明。出典必須)
+│   │   └── rulebook-example-v1.md  # 記入例:取り込んだ資料の要約
+│   └── concepts/                   #   概念・比較・横断の解説(説明)
+│                                   #   **詳細設計(ファイル・関数・クラス)は書かない — src/ を見れば分かる**
 ├── work/                           # 反映作業の単位。**git 追跡外**(Core)
 │   └── 0001-example-add-paralysis/ #   記入例:tasks / diff
 ├── src/                            # 依存方向 core←app(Core/Adapt)
@@ -121,6 +133,7 @@ README.md の「動作環境」に**加えて**必要なもの(テスト・整�
 │   └── integration/                #   総合:繋いだ経路を最初から最後まで通す
 └── scripts/
     ├── validate.sh                 # 機械検査(項目の正本は impl-rules.md N-8)。/validate が呼ぶ(Core)
+    │                               #   `--normative-diff <ref>` で規範ページの差分だけを見る(/tidy・/decide)
     └── hooks.sh                    # hooks の実体。format|test(Core)/ veto|validate(Scale)を引数で切替
 ```
 
@@ -142,12 +155,15 @@ src/core          ←          src/app
 
 | 置き場 | 中身 |
 | --- | --- |
-| `docs/` | 決定を統合した確定要件(何を満たすか)。ここが最終的な正 |
-| `src/` `tests/` | **どう作ったか**。構造は読めば分かるので文書に写さない |
+| `docs/requirements/` | 要件定義:決定を統合した確定要件(何を満たすか)。ここが最終的な正 |
+| `docs/design/` | 基本設計:構成要素の境界と責務・外部との契約・概念データ・セキュリティ設計 |
+| `docs/` のその他 | 説明ページ(目録・作業記録・全体像・要約・概念)。規範ではない |
+| `src/` `tests/` | **どう作ったか**(詳細設計と実装)。読めば分かるので文書に写さない |
 | `docs/glossary.md` | ドメイン用語の正本。**登録されていない語をコードで使わない** |
 | `decisions/undecided/` | 議論中の論点(案・比較・現在の考え) |
 | `decisions/decided/` | 決定済みの論点(決定・理由・却下した案・反映先) |
 | `work/NNNN-*/` | 反映作業の単位(tasks / diff)。**git 追跡外** |
+| `sources/` | 一次資料の原本。不変。**既定で git 追跡外**(出典は要約ページに残る) |
 | `<「正」の所在>` | <公式仕様・要件定義書・データ契約など、仕様の出どころ> |
 
 食い違いを見つけたら **ドキュメント → テスト → ソースコード** の順に上位を正とする。
@@ -161,8 +177,11 @@ src/core          ←          src/app
 
 1. `decisions/undecided/NNNN-<論点>/topic.md` に案を書いて議論する(種別タグを必ず書く)。
 2. **人間が決定を承認**したら `decisions/decided/` へ移す。
-3. **その場で統合** — 満たすべきことを `docs/` へ書き起こす。未統合を残さない。
-   **構造(層・ファイル分割・関数名)は文書に書かない。** 結果はコードに現れ、理由は論点に残る。
+3. **その場で統合** — 満たすべき振る舞いを `docs/requirements/` へ、構成要素の責務や外部との契約を
+   `docs/design/` へ書き起こす。未統合を残さない。
+   **詳細設計(ファイル分割・関数名・クラス構成)は文書に書かない。** 結果はコードに現れ、理由は論点に残る。
+   決まったことが増えたら `/tidy` で `docs/` を読みやすく整理し直す(規範の意味は変えない —
+   `scripts/validate.sh --normative-diff` が機械で確かめる)。
 4. `work/NNNN-<作業>/` を切り、失敗するテストを先に書く(Red)→ 最小実装(Green)→
    リファクタ → 総合テスト。**作業中に `docs/` を書き換えない。**
 

@@ -24,6 +24,149 @@ EXAMPLE_MARK='-example-'   # 記入例(CLAUDE.md「このリポジトリの現�
 MAX_SHOW=10
 fail=0
 
+# docs/ は LLM Wiki として運用する(@.claude/rules/doc-rules.md「wiki の構成」)。
+# 構成を変えたらここだけ直す — 下の検査と --normative-diff が同じ設定を共有する。
+WIKI_INDEX="docs/index.md"     # 全ページの目録。孤立ページを出さないための入口
+WIKI_LOG="docs/log.md"         # 追記専用の作業記録
+# 規範ページ = 何を満たすか(要件定義・基本設計・用語)。中身の変更は /decide 経由だけ。
+# これ以外の docs/ は説明ページで、LLM が /ingest・/tidy で自由に整理してよい。
+NORMATIVE_PATHS=(docs/requirements docs/design "$GLOSSARY")
+SUMMARY_DIR="docs/summaries"   # 一次資料の要約。出典(sources:)が必須
+SOURCE_DIR="sources"           # 一次資料の原本。不変・既定で git 追跡外
+# 不可視文字の検査対象 = エージェントが読む文書すべて(間接プロンプトインジェクション対策。
+# @.claude/rules/security-rules.md「エージェントの防御」)。
+AGENT_READ_PATHS=(CLAUDE.md README.md DEVELOPMENT.md .claude docs decisions "$SOURCE_DIR" src tests)
+
+# python 側で共有する解析。シナリオ見出し・frontmatter・規範の行の取り出し方を検査ごとに
+# 書くと、片方だけ直して検査と --normative-diff の判定がずれる(@impl-rules.md「共通化」)。
+read -r -d '' PY_LIB <<'PYLIB'
+import os, re, subprocess, sys
+from collections import Counter
+
+SCENARIO_HEADING = re.compile(r'^### (S\d{4}_\d{2}) +(\S.*)$')
+MD_LINK = re.compile(r'\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
+FENCE = re.compile(r'^\s*(```|~~~)')
+TABLE_SEPARATOR = re.compile(r'^\|?[\s:|-]+\|?$')
+
+def read_text(path):
+    with open(path, encoding='utf-8') as handle:
+        return handle.read()
+
+def split_frontmatter(lines):
+    """先頭の `---` で囲んだ YAML を (dict, 本文の行, 本文の開始行番号) で返す。"""
+    if not lines or lines[0].strip() != '---':
+        return {}, lines, 1
+    for end in range(1, len(lines)):
+        if lines[end].strip() == '---':
+            meta = {}
+            for line in lines[1:end]:
+                key, sep, value = line.partition(':')
+                if sep:
+                    meta[key.strip()] = value.strip()
+            return meta, lines[end + 1:], end + 2
+    return {}, lines, 1
+
+def meta_numbers(meta, key):
+    return re.findall(r'\d{4}', meta.get(key, ''))
+
+def outside_code(lines, first_no=1):
+    """コードブロックの外の (行番号, 行) だけを返す。例示のコードを規範として数えないため。"""
+    in_code = False
+    for offset, line in enumerate(lines):
+        if FENCE.match(line):
+            in_code = not in_code
+            continue
+        if not in_code:
+            yield first_no + offset, line
+
+def normalize(line):
+    """リンクの付け外しと空白の揺れでは意味が変わらないので、比較の前に落とす。"""
+    text = MD_LINK.sub(lambda m: m.group(1), line)
+    return ' '.join(text.split())
+
+def normative_items(lines):
+    """規範の記述 = 箇条書きと表の行(散文は説明扱い — doc-rules.md「規範ページの書き方」)。"""
+    items = []
+    for _, line in outside_code(lines):
+        stripped = line.strip()
+        if stripped.startswith('- ') or (stripped.startswith('|') and not TABLE_SEPARATOR.match(stripped)):
+            items.append(normalize(stripped))
+    return items
+
+def scenarios(lines):
+    """シナリオ ID -> (名前, 本文の箇条書き)。ID と THEN の結びつきまで比べるため。"""
+    found, current = {}, None
+    for _, line in outside_code(lines):
+        match = SCENARIO_HEADING.match(line)
+        if match:
+            current = match.group(1)
+            found[current] = [normalize(match.group(2))]
+        elif line.startswith('#'):
+            current = None
+        elif current and line.strip().startswith('- '):
+            found[current].append(normalize(line.strip()))
+    return {key: tuple(value) for key, value in found.items()}
+PYLIB
+run_py() {   # $1 = プログラム本体、残り = 引数(argv で渡す。stdin は使わない)
+  local program=$1; shift
+  python3 -c "$PY_LIB"$'\n'"$program" "$@"
+}
+
+# ---------------------------------------------------------------------------
+# --normative-diff [git-ref]: 規範ページの中身が ref(既定 HEAD)から変わったかだけを見る。
+# /tidy(意味を変えない整理)は差分 0 を示して初めて完了できる。/decide では、変わった
+# シナリオがその論点の ID だけであることを確かめる(@.claude/rules/doc-rules.md「wiki の運用」)。
+if [ "${1:-}" = "--normative-diff" ]; then
+  read -r -d '' DIFF_PY <<'PYDIFF'
+ref, paths = sys.argv[1], sys.argv[2:]
+
+def files_now():
+    for path in paths:
+        if os.path.isfile(path):
+            yield path
+        for base, _, names in os.walk(path):
+            for name in names:
+                if name.endswith('.md'):
+                    yield os.path.join(base, name)
+
+def files_at_ref():
+    out = subprocess.run(['git', 'ls-tree', '-r', '--name-only', ref, '--', *paths],
+                         capture_output=True, text=True, check=True).stdout
+    return [line for line in out.splitlines() if line.endswith('.md')]
+
+def read_ref(path):
+    return subprocess.run(['git', 'show', f'{ref}:{path}'],
+                          capture_output=True, text=True, check=True).stdout
+
+def collect(read, files):
+    items, found = Counter(), {}
+    for path in files:
+        _, body, _ = split_frontmatter(read(path).splitlines())
+        items.update(normative_items(body))
+        found.update(scenarios(body))
+    return items, found
+
+before_items, before_ids = collect(read_ref, files_at_ref())
+after_items, after_ids = collect(read_text, sorted(set(files_now())))
+changed = 0
+for scenario_id in sorted(set(before_ids) | set(after_ids)):
+    if scenario_id not in after_ids:
+        print(f"消えたシナリオ: {scenario_id}"); changed += 1
+    elif scenario_id not in before_ids:
+        print(f"増えたシナリオ: {scenario_id}"); changed += 1
+    elif before_ids[scenario_id] != after_ids[scenario_id]:
+        print(f"名前か本文が変わったシナリオ: {scenario_id}"); changed += 1
+for item, count in sorted((before_items - after_items).items()):
+    print(f"消えた規範の行(×{count}): {item}"); changed += 1
+for item, count in sorted((after_items - before_items).items()):
+    print(f"増えた規範の行(×{count}): {item}"); changed += 1
+print("規範の差分なし" if changed == 0 else f"規範の差分 {changed} 件")
+sys.exit(1 if changed else 0)
+PYDIFF
+  run_py "$DIFF_PY" "${2:-HEAD}" "${NORMATIVE_PATHS[@]}"
+  exit $?
+fi
+
 # 見出しは impl-rules.md N-8 の項目名と一字一句同じにする(/validate がこの名前で N-8 と対応づける)。
 section() { echo "== validate: $1 =="; }
 report_ok() { echo "  OK"; }
@@ -52,7 +195,12 @@ missing_paths=""
 for path in "${SRC_DIRS[@]}" "${TEST_DIRS[@]}" "${DOC_DIRS[@]}" "$DECISION_DIR"; do
   [ -d "$path" ] || missing_paths="${missing_paths}${path}(ディレクトリが無い)"$'\n'
 done
-[ -f "$GLOSSARY" ] || missing_paths="${missing_paths}${GLOSSARY}(用語集が無い)"$'\n'
+for path in "$GLOSSARY" "$WIKI_INDEX" "$WIKI_LOG"; do
+  [ -f "$path" ] || missing_paths="${missing_paths}${path}(ファイルが無い)"$'\n'
+done
+for path in "${NORMATIVE_PATHS[@]}" "$SUMMARY_DIR" "$SOURCE_DIR"; do
+  [ -e "$path" ] || missing_paths="${missing_paths}${path}(無い)"$'\n'
+done
 missing_paths=$(nonempty "$missing_paths")
 if [ -n "$missing_paths" ]; then
   report_ng "scripts/validate.sh 冒頭の設定が実在しないパスを指している(改名の直し漏れ)" "$missing_paths"
@@ -70,10 +218,8 @@ fi
 mapfile -t doc_files < <(find "${DOC_DIRS[@]}" -name '*.md' 2>/dev/null | sort)
 doc_out=""
 if [ "${#doc_files[@]}" -gt 0 ]; then
-  doc_out=$(python3 - "${doc_files[@]}" <<'PY'
-import re, sys
-
-HEADING = re.compile(r'^### (S\d{4}_\d{2}) +\S')
+  read -r -d '' DOC_PY <<'PYDOC'
+HEADING = SCENARIO_HEADING
 NEAR_MISS = re.compile(r'^### S[-\d]')   # `S-0001-01` 等のハイフン形も拾う(N-2 はハイフン禁止)
 KEYWORDS = ('GIVEN', 'WHEN', 'THEN')
 
@@ -100,8 +246,8 @@ for path in sys.argv[1:]:
             if keyword not in body:
                 print(f"ERR\t{path}:{no} {scenario_id} に {keyword} がない")
         print(f"ID\t{path}\t{scenario_id}")
-PY
-  )
+PYDOC
+  doc_out=$(run_py "$DOC_PY" "${doc_files[@]}")
 fi
 doc_err=$(pick ERR "$doc_out")
 # 記入例は実作業ではないため ID 照合から外す(消すまで未実装 NG が出続けるのを防ぐ)。
@@ -270,7 +416,9 @@ def sole(line_re, word_re, text):
     found = word_re.findall(line.group(0))
     return found[0] if len(found) == 1 else None
 LINK = re.compile(r'反映先')
-PATH_IN_LINK = re.compile(r'`([A-Za-z0-9_./-]+\.[A-Za-z0-9]+)`')   # `docs/foo.md` の形だけ拾う
+# 反映先に S-ID・要件・基本設計・用語集(または docs/)が書かれていれば「docs/ に統合した」と宣言している。`—` だけなら
+# 要件にも基本設計にも及ばない決定(詳細設計の決定など)。どちらとも読めないものは書き損じとして NG にする。
+NEEDS_REFLECTION = re.compile(r'S\d{4}_\d{2}|docs/|要件|基本設計|用語集')
 MEASURE_FILE = 'result.md'
 
 for state in ('undecided', 'decided'):
@@ -310,20 +458,159 @@ for state in ('undecided', 'decided'):
         if not link:
             print(f"LINK\t{topic} に `反映先:` が無い(未統合の疑い)")
             continue
-        # 反映先がパスを名指ししているなら、そのファイルが実在するかまで見る。
-        # 「統合したつもり」で存在しない先を指していると、決定がどこにも反映されない。
-        for ref in PATH_IN_LINK.findall(text[link.start():].splitlines()[0]):
-            if not os.path.exists(ref):
-                print(f"LINK\t{topic} の反映先 {ref} が実在しない")
+        # 反映先をファイルのパスで照合しない — /tidy がページを移すたびに、書き換え禁止の
+        # decided/ 側が壊れるため。代わりに「docs/ のどこかがこの論点を参照しているか」を
+        # 下の wiki 検査の結果と突き合わせる(シナリオ ID の先頭4桁か、frontmatter の decisions:)。
+        link_line = text[link.start():].splitlines()[0]
+        if NEEDS_REFLECTION.search(link_line):
+            print(f"NEEDS\t{name[:4]}\t{topic}")
+        elif '—' not in link_line:
+            print(f"LINK\t{topic} の `反映先:` が S-ID・docs/・`—` のどれとも読めない")
 PY
 )
 section "論点のタグ"
 topic_tag=$(pick TAG "$topic_out")
 if [ -n "$topic_tag" ]; then report_ng "論点の種別・状態のタグが雛形のまま・位置とずれている、または二系統が混ざっている" "$topic_tag"; else report_ok; fi
 
+# ---------------------------------------------------------------------------
+# wiki の検査(docs/ 全体)。出力は REF(参照されている論点番号)/ IDX(目録に無い孤立ページ)/
+# LNK(切れたリンク)/ ORG(規範ページの由来・要約の出典)/ LOG(作業記録の書式)。
+read -r -d '' WIKI_PY <<'PYWIKI'
+index_path, log_path, summary_dir, source_dir = sys.argv[1:5]
+decided = set(sys.argv[5].split())
+normative = [p.rstrip('/') for p in sys.argv[6].split('\n') if p]
+files = sys.argv[7:]
+LOG_HEADING = re.compile(r'^## \[(\d{4}-\d{2}-\d{2})\] (ingest|decide|tidy|lint|query) \| \S')
+
+def is_under(path, base):
+    return path == base or path.startswith(base + '/')
+
+linked_from_index = set()
+for path in files:
+    lines = read_text(path).splitlines()
+    meta, body, first_no = split_frontmatter(lines)
+    ids = scenarios(body)
+    decisions = meta_numbers(meta, 'decisions')
+    for number in {i[1:5] for i in ids} | set(decisions):
+        print(f"REF\t{number}")
+    if any(is_under(path, base) for base in normative):
+        # 規範の記述(箇条書き・表)があるのに由来が無い = 決定を経ずに書いた疑い。
+        if normative_items(body) and not decisions:
+            print(f"ORG\t{path}: 規範の記述があるのに frontmatter の decisions: が無い")
+        for number in decisions:
+            if number not in decided:
+                print(f"ORG\t{path}: decisions: の論点 {number} が decisions/decided/ に無い")
+        for number in sorted({i[1:5] for i in ids} - set(decisions)):
+            print(f"ORG\t{path}: シナリオの論点 {number} が decisions: に無い")
+    if is_under(path, summary_dir) and not meta.get('sources'):
+        print(f"ORG\t{path}: 要約ページに出典(frontmatter の sources:)が無い")
+    for no, line in outside_code(body, first_no):
+        for _, target in MD_LINK.findall(line):
+            target = target.split('#')[0]
+            if not target or re.match(r'^[a-z]+:', target):
+                continue                      # URL・アンカーだけのリンクは対象外
+            resolved = os.path.normpath(os.path.join(os.path.dirname(path), target))
+            if path == index_path:
+                linked_from_index.add(resolved)
+            # 一次資料は既定で git 追跡外なので、他の人の手元には無いのが正しい。
+            if is_under(resolved, source_dir):
+                continue
+            if not os.path.exists(resolved):
+                print(f"LNK\t{path}:{no} リンク先が無い: {target}")
+
+for path in files:
+    if path not in (index_path, log_path) and path not in linked_from_index:
+        print(f"IDX\t{path} が {index_path} から辿れない(孤立ページ)")
+
+# 作業記録は時系列の追記専用。書式が揃っていれば grep で直近を引ける(LLM Wiki の log.md)。
+previous = ''
+for no, line in enumerate(read_text(log_path).splitlines() if os.path.isfile(log_path) else [], 1):
+    if not line.startswith('## '):
+        continue
+    match = LOG_HEADING.match(line)
+    if not match:
+        print(f"LOG\t{log_path}:{no} 見出しが `## [YYYY-MM-DD] <ingest|decide|tidy|lint|query> | <題>` でない")
+    elif match.group(1) < previous:
+        print(f"LOG\t{log_path}:{no} 日付が前の記録より古い(追記専用。途中に挿入しない)")
+    else:
+        previous = match.group(1)
+PYWIKI
+wiki_out=""
+[ "${#doc_files[@]}" -gt 0 ] && wiki_out=$(run_py "$WIKI_PY" "$WIKI_INDEX" "$WIKI_LOG" "$SUMMARY_DIR" \
+  "$SOURCE_DIR" "$(printf '%s ' $decided_numbers)" "$(printf '%s\n' "${NORMATIVE_PATHS[@]}")" "${doc_files[@]}")
+
 section "未統合の決定"
 topic_link=$(pick LINK "$topic_out")
-if [ -n "$topic_link" ]; then report_ng "決定済みなのに反映先が無い" "$topic_link"; else report_ok; fi
+referenced_numbers=$(pick REF "$wiki_out" | sort -u)
+unreflected=$(pick NEEDS "$topic_out" | awk -F'\t' -v refs="$referenced_numbers" '
+  BEGIN { n = split(refs, a, "\n"); for (i = 1; i <= n; i++) seen[a[i]] = 1 }
+  !($1 in seen) { print $2 " (docs/ のどのページも論点 " $1 " を参照していない)" }')
+if [ -n "$topic_link" ] || [ -n "$unreflected" ]; then
+  [ -n "$topic_link" ] && report_ng "決定済みなのに反映先が無い・読めない" "$topic_link"
+  [ -n "$unreflected" ] && report_ng "反映先を宣言しているのに docs/ に統合されていない" "$unreflected"
+else
+  report_ok
+fi
+
+# ---------------------------------------------------------------------------
+section "不可視文字"
+# 人間には見えずエージェントだけが読む文字(タグ文字によるスマグリング、ゼロ幅、双方向制御)。
+# 取り込んだ資料や skill に仕込まれると、レビューを素通りして指示として働く
+# (@.claude/rules/security-rules.md「エージェントの防御」)。バイナリ(PDF 等)は読めないので
+# 対象外 — 取り込む前にテキストへ変換する。
+read -r -d '' INVISIBLE_PY <<'PYINV'
+SUSPICIOUS = [(0xE0000, 0xE007F), (0x200B, 0x200F), (0x202A, 0x202E),
+              (0x2060, 0x2064), (0x2066, 0x2069), (0xFEFF, 0xFEFF), (0x180E, 0x180E)]
+MAX_BYTES = 5_000_000
+
+def walk(paths):
+    for path in paths:
+        if os.path.isfile(path):
+            yield path
+        for base, dirs, names in os.walk(path):
+            dirs[:] = [d for d in dirs if d != '.git']
+            for name in names:
+                yield os.path.join(base, name)
+
+for path in walk(sys.argv[1:]):
+    try:
+        if os.path.getsize(path) > MAX_BYTES:
+            continue
+        text = read_text(path)
+    except (OSError, UnicodeDecodeError):
+        continue
+    for no, line in enumerate(text.splitlines(), 1):
+        for col, char in enumerate(line, 1):
+            code = ord(char)
+            if no == 1 and col == 1 and code == 0xFEFF:
+                continue                      # 先頭の BOM は符号化の印で、指示を運ばない
+            if any(low <= code <= high for low, high in SUSPICIOUS):
+                print(f"{path}:{no}:{col} U+{code:04X}")
+PYINV
+invisible=$(run_py "$INVISIBLE_PY" "${AGENT_READ_PATHS[@]}")
+if [ -n "$invisible" ]; then
+  report_ng "エージェントが読む文書に不可視文字がある(意図しない指示が隠れていないか確認する)" "$invisible"
+else
+  report_ok
+fi
+
+# ---------------------------------------------------------------------------
+section "索引とリンク"
+wiki_idx=$(pick IDX "$wiki_out"); wiki_lnk=$(pick LNK "$wiki_out")
+if [ -n "$wiki_idx" ] || [ -n "$wiki_lnk" ]; then
+  [ -n "$wiki_idx" ] && report_ng "目録に載っていないページがある" "$wiki_idx"
+  [ -n "$wiki_lnk" ] && report_ng "docs/ 内のリンクが切れている" "$wiki_lnk"
+else
+  report_ok
+fi
+
+section "規範ページの由来"
+wiki_org=$(pick ORG "$wiki_out")
+if [ -n "$wiki_org" ]; then report_ng "規範ページの由来、または要約の出典が無い・誤っている" "$wiki_org"; else report_ok; fi
+
+section "作業記録の書式"
+wiki_log=$(pick LOG "$wiki_out")
+if [ -n "$wiki_log" ]; then report_ng "作業記録(log.md)の書式が崩れている" "$wiki_log"; else report_ok; fi
 
 # ---------------------------------------------------------------------------
 if [ "$fail" -eq 0 ]; then echo "整合OK"; else echo "整合NG(上記を修正)"; fi

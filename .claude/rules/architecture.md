@@ -25,14 +25,14 @@
 
 | | 方針 | 実行 | 強制 |
 |---|---|---|---|
-| **Core** | 二系統原則・Don't | /start-project, /new-topic, /decide, /new-work, /run-loop, /validate, /where | format on edit, test on stop |
+| **Core** | 二系統原則・Don't | /start-project, /new-topic, /decide, /new-work, /run-loop, /validate, /where, /ingest, /tidy | format on edit, test on stop |
 | **Scale** | チーム規約・ロール | /measure, /team-onboarding | 危険操作veto, 時間予算, CI |
 | **Adapt** | 「正」の定義・不変条件 | ドメイン別コマンド | ドメイン別検査 |
 
 各セルは独立。1セルの変更が他に波及しない。
 
 実体の所在(このテンプレートに収録済みのもの):
-- Core・実行の skill 7つ → `.claude/skills/{start-project,new-topic,decide,new-work,run-loop,validate,where}/SKILL.md`
+- Core・実行の skill 9つ → `.claude/skills/{start-project,new-topic,decide,new-work,run-loop,validate,where,ingest,tidy}/SKILL.md`
 - Core・強制の hooks(format on edit / test on stop)→ 配線は `.claude/settings.json`、
   実体は `scripts/hooks.sh format` / `scripts/hooks.sh test`
 - Scale・強制のうち veto と validate → 配線は `.claude/settings.team.json`(settings.json にマージで
@@ -43,11 +43,14 @@
 ## 決定の流れ(全体像)
 
 ```
+sources/                             一次資料の原本(不変)
+        ↓ /ingest:要約・目録を更新し、食い違いと要件の候補を論点にする
 decisions/undecided/NNNN-<論点>/     案を出し、精査し、議論する
-        ↓ 決まったら フォルダごと移す
+        ↓ 決まったら フォルダごと移す(人間の承認)
 decisions/decided/NNNN-<論点>/       決定 + 理由 + 却下案 + 反映先
-        ↓ その場で統合する(未統合の decided を残さない)
-docs/                        何を満たすか(← 正本。どう作るかはコードが正本)
+        ↓ /decide:その場で統合する(未統合の decided を残さない)
+docs/requirements/ docs/design/      何を満たすか(要件定義・基本設計 ← 正本。どう作るかはコードが正本)
+        ↺ /tidy:意味を変えずに整理し続ける(規範の差分 0 を機械で確かめる)
         ↓ 正本をもとに作業単位を切る
 work/NNNN-<作業名>/                  tasks / diff(git 追跡外)
         ↓

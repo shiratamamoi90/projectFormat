@@ -13,7 +13,8 @@ description: 統合済みの docs/ をもとに、反映作業の単位を work/
 手順:
 1. `work/` の既存連番を調べ、最大+1 を 4桁ゼロ詰めで NNNN とする(無ければ 0001)。
    **この番号はシナリオ ID とは無関係**(ID の先頭4桁は論点番号。@.claude/rules/impl-rules.md N-2)。
-2. `work/NNNN-$ARGUMENTS/` に2ファイルを作る。**先頭に反映元(`docs/` の該当箇所)を書く。**
+2. `work/NNNN-$ARGUMENTS/` に2ファイルを作る。**先頭に反映元を書く** — 要件のシナリオ ID と
+   基本設計の項目名で書き、パスでは書かない(`/tidy` がページを移すため。場所は `docs/index.md` から引く)。
    - `tasks.md` … テスト先行のチェックリスト(下記の形)
    - `diff.md` … ADDED / MODIFIED / 完了条件
 3. 対象シナリオ ID を `docs/` から拾って列挙し、作業範囲を報告する。

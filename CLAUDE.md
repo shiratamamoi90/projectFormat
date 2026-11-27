@@ -96,18 +96,19 @@ CLAUDE.md はハードポリシーではない。絶対則は可能な限り hoo
 | ディレクトリ構造・パスの役割・開始の手順・規模に応じた拡張 | `DEVELOPMENT.md`(開発する人向け) |
 | 技術要素・環境・コマンド・「正」の定義 | `.claude/rules/stack.md` |
 | 設計思想・レイヤー(Core/Scale/Adapt)・依存方向の地図 | `.claude/rules/architecture.md` |
-| 仕様(GIVEN/WHEN/THEN・承認点) | `.claude/rules/doc-rules.md` |
+| 要件定義・基本設計の書き方、`docs/` の LLM Wiki 運用(取り込み・整理・承認点) | `.claude/rules/doc-rules.md` |
 | 設計(部品の分け方の決め方・承認点) | `.claude/rules/decision-rules.md` |
 | 議論と決定の記録(案・精査・却下理由) | `decisions/undecided/` → `decisions/decided/` |
-| 決定済みの正本 | `docs/`(何を満たすか。**どう作るかはコードが正本**) |
+| 決定済みの正本 | `docs/requirements/`・`docs/design/`(何を満たすか。入口は `docs/index.md`。**どう作るかはコードが正本**) |
+| 一次資料の原本(不変・既定で git 追跡外) | `sources/`(取り込みは `/ingest`) |
 | 反映作業の単位(git 追跡外) | `work/NNNN-<作業名>/`(tasks / diff) |
 | テスト(テスト先行・回帰) | `.claude/rules/test-rules.md` |
 | 実装・インフラ・**不変条件**・規約(コメント/ハードコード禁止/共通化) | `.claude/rules/impl-rules.md` |
 | 探索/実験(仮説・計測・再現性) | `.claude/rules/experiment-rules.md` |
-| セキュリティ(機密・危険操作・依存・入力検証) | `.claude/rules/security-rules.md` |
-| スラッシュコマンド | `.claude/skills/`(/start-project /new-topic /decide /new-work /run-loop /validate /where) |
+| セキュリティ(機密・エージェントの防御・危険操作・依存・入力検証・OWASP) | `.claude/rules/security-rules.md` |
+| スラッシュコマンド | `.claude/skills/`(/start-project /new-topic /decide /new-work /run-loop /validate /where /ingest /tidy) |
 | hooks の配線 | `.claude/settings.json`(Core: format on edit, test on stop)/ `.claude/settings.team.json`(Scale: veto, validate。マージで有効化) |
 | hooks の実体 | `scripts/hooks.sh <format\|test\|veto\|validate>`(4イベントとも中身はこの1本) |
 
-この表のファイル(`DEVELOPMENT.md`・rules 8本・skill 7つ・settings 2つ・スクリプト2本)はすべて
+この表のファイル(`DEVELOPMENT.md`・rules 8本・skill 9つ・settings 2つ・スクリプト2本)はすべて
 本リポジトリに収録済み。パスはリポジトリ直下からの相対パス。
